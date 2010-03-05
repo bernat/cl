@@ -216,7 +216,11 @@ int main(int argc,char *argv[])
 #token ASIG         ":="
 
 /* [Afegits] */
-#token PLUS         "\-"
+
+#token BOOL         "BOOL"
+
+#token MINUS         "\-"
+
 
 #token IF           "IF"
 #token THEN         "THEN"
@@ -228,8 +232,11 @@ int main(int argc,char *argv[])
 #token AND					"AND"
 #token OR						"OR"
 #token NOT					"NOT"
-#token EQUAL				"\="
 #token TIMES        "\*"
+#token DIV	        "\/"
+#token EQUAL				"\="
+#token GTHAN        "\>"
+#token LTHAN        "\<"
 /* [/Afegits] */
 
 #token DOT          "."
@@ -249,7 +256,7 @@ dec_vars: (VARS! l_dec_vars ENDVARS! | ) <<#0=createASTlist(_sibling);>>;
 
 l_dec_vars: (dec_var)* ;
 
-dec_var: IDENT^ constr_type;
+dec_var: IDENT^ (constr_type | ASIG! expression);
 
 l_dec_blocs: ( dec_bloc )* <<#0=createASTlist(_sibling);>> ;
 
@@ -263,17 +270,20 @@ field: IDENT^ constr_type;
 l_instrs: (instruction)* <<#0=createASTlist(_sibling);>>;
 
 instruction:
-        IDENT ( DOT^ IDENT)* ASIG^ expression
+			VAR^ IDENT (constr_type | ASIG! expression) 
+			|	IDENT ( DOT^ IDENT)* ASIG^ expression
       |	WRITELN^ OPENPAR! ( expression | STRING ) CLOSEPAR!
     	| IF^ expression THEN! l_instrs (ELSE! l_instrs | ) ENDIF!
 			| WHILE^ expression DO! l_instrs ENDWHILE!;
 
 expression: expression1;
-expression1: expression2 (AND^ expression2 | OR^ expression2)*);
-expression2: expression ()
-exsimple: expsimple (PLUS^ expsimple)* | expsimple(MINUS^ expsimple)*;
+expression1: expression2 (AND^ expression2 | OR^ expression2)*;
+expression2: expression3 (EQUAL^ expression3 | GTHAN^ expression3 | LTHAN^ expression3)*;
+expression3: term (PLUS^ term | MINUS^ term)*;
+term: expsimple (TIMES^ unari | DIV^ unari)*;
+unari: NOT^ unari | MINUS^ unari | expression4;
+expression4: OPENPAR! expression CLOSEPAR! | expsimple;
 
 expsimple:
         IDENT^ (DOT^ IDENT)*
-      | INTCONST
-      ;
+      | INTCONST;

@@ -22,27 +22,36 @@
 #define OPENPAR 11
 #define CLOSEPAR 12
 #define ASIG 13
-#define IF 14
-#define THEN 15
-#define ELSE 16
-#define ENDIF 17
-#define WHILE 18
-#define DO 19
-#define ENDWHILE 20
-#define AND 21
-#define OR 22
-#define DOT 23
-#define IDENT 24
-#define INTCONST 25
-#define COMMENT 26
-#define WHITESPACE 27
-#define NEWLINE 28
-#define LEXICALERROR 29
-#define PROCEDURE 30
-#define ENDPROCEDURE 31
-#define FUNCTION 32
-#define ENDFUNCTION 33
-#define STRING 34
+#define BOOL 14
+#define MINUS 15
+#define IF 16
+#define THEN 17
+#define ELSE 18
+#define ENDIF 19
+#define WHILE 20
+#define DO 21
+#define ENDWHILE 22
+#define AND 23
+#define OR 24
+#define NOT 25
+#define TIMES 26
+#define DIV 27
+#define EQUAL 28
+#define GTHAN 29
+#define LTHAN 30
+#define DOT 31
+#define IDENT 32
+#define INTCONST 33
+#define COMMENT 34
+#define WHITESPACE 35
+#define NEWLINE 36
+#define LEXICALERROR 37
+#define PROCEDURE 38
+#define ENDPROCEDURE 39
+#define FUNCTION 40
+#define ENDFUNCTION 41
+#define VAR 42
+#define STRING 43
 
 #ifdef __USE_PROTOS
 void program(AST**_root);
@@ -111,6 +120,42 @@ extern void expression();
 #endif
 
 #ifdef __USE_PROTOS
+void expression1(AST**_root);
+#else
+extern void expression1();
+#endif
+
+#ifdef __USE_PROTOS
+void expression2(AST**_root);
+#else
+extern void expression2();
+#endif
+
+#ifdef __USE_PROTOS
+void expression3(AST**_root);
+#else
+extern void expression3();
+#endif
+
+#ifdef __USE_PROTOS
+void term(AST**_root);
+#else
+extern void term();
+#endif
+
+#ifdef __USE_PROTOS
+void unari(AST**_root);
+#else
+extern void unari();
+#endif
+
+#ifdef __USE_PROTOS
+void expression4(AST**_root);
+#else
+extern void expression4();
+#endif
+
+#ifdef __USE_PROTOS
 void expsimple(AST**_root);
 #else
 extern void expsimple();
@@ -125,4 +170,10 @@ extern SetWordType zzerr4[];
 extern SetWordType zzerr5[];
 extern SetWordType zzerr6[];
 extern SetWordType zzerr7[];
+extern SetWordType zzerr8[];
 extern SetWordType setwd2[];
+extern SetWordType setwd3[];
+extern SetWordType zzerr9[];
+extern SetWordType zzerr10[];
+extern SetWordType zzerr11[];
+extern SetWordType setwd4[];

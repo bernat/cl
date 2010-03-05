@@ -133,6 +133,16 @@ WRITELN
 		NLA = ASIG;
 	>>
 
+BOOL
+	<<
+		NLA = BOOL;
+	>>
+
+\-
+	<<
+		NLA = MINUS;
+	>>
+
 IF
 	<<
 		NLA = IF;
@@ -176,6 +186,36 @@ AND
 OR
 	<<
 		NLA = OR;
+	>>
+
+NOT
+	<<
+		NLA = NOT;
+	>>
+
+\*
+	<<
+		NLA = TIMES;
+	>>
+
+\/
+	<<
+		NLA = DIV;
+	>>
+
+\=
+	<<
+		NLA = EQUAL;
+	>>
+
+\>
+	<<
+		NLA = GTHAN;
+	>>
+
+\<
+	<<
+		NLA = LTHAN;
 	>>
 
 .
