@@ -1,0 +1,6 @@
+cl
+*.o
+err.c
+scan.c
+tokens.h
+parser.dlg

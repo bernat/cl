@@ -1,0 +1,10 @@
+PROGRAM
+  VARS
+    x int
+    y bool
+    b bool
+  ENDVARS
+			
+	---x+1
+
+ENDPROGRAM

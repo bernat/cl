@@ -22,35 +22,35 @@
 #define OPENPAR 11
 #define CLOSEPAR 12
 #define ASIG 13
-#define BOOL 14
-#define MINUS 15
-#define IF 16
-#define THEN 17
-#define ELSE 18
-#define ENDIF 19
-#define WHILE 20
-#define DO 21
-#define ENDWHILE 22
-#define AND 23
-#define OR 24
-#define NOT 25
-#define TIMES 26
-#define DIV 27
-#define EQUAL 28
-#define GTHAN 29
-#define LTHAN 30
-#define DOT 31
-#define IDENT 32
-#define INTCONST 33
-#define COMMENT 34
-#define WHITESPACE 35
-#define NEWLINE 36
-#define LEXICALERROR 37
-#define PROCEDURE 38
-#define ENDPROCEDURE 39
-#define FUNCTION 40
-#define ENDFUNCTION 41
-#define VAR 42
+#define VAR 14
+#define BOOL 15
+#define MINUS 16
+#define IF 17
+#define THEN 18
+#define ELSE 19
+#define ENDIF 20
+#define WHILE 21
+#define DO 22
+#define ENDWHILE 23
+#define AND 24
+#define OR 25
+#define NOT 26
+#define TIMES 27
+#define DIV 28
+#define EQUAL 29
+#define GTHAN 30
+#define LTHAN 31
+#define DOT 32
+#define IDENT 33
+#define INTCONST 34
+#define COMMENT 35
+#define WHITESPACE 36
+#define NEWLINE 37
+#define LEXICALERROR 38
+#define PROCEDURE 39
+#define ENDPROCEDURE 40
+#define FUNCTION 41
+#define ENDFUNCTION 42
 #define STRING 43
 
 #ifdef __USE_PROTOS
@@ -120,39 +120,27 @@ extern void expression();
 #endif
 
 #ifdef __USE_PROTOS
-void expression1(AST**_root);
+void comparison_exp(AST**_root);
 #else
-extern void expression1();
+extern void comparison_exp();
 #endif
 
 #ifdef __USE_PROTOS
-void expression2(AST**_root);
+void plus_exp(AST**_root);
 #else
-extern void expression2();
+extern void plus_exp();
 #endif
 
 #ifdef __USE_PROTOS
-void expression3(AST**_root);
+void term_exp(AST**_root);
 #else
-extern void expression3();
+extern void term_exp();
 #endif
 
 #ifdef __USE_PROTOS
-void term(AST**_root);
+void unari_exp(AST**_root);
 #else
-extern void term();
-#endif
-
-#ifdef __USE_PROTOS
-void unari(AST**_root);
-#else
-extern void unari();
-#endif
-
-#ifdef __USE_PROTOS
-void expression4(AST**_root);
-#else
-extern void expression4();
+extern void unari_exp();
 #endif
 
 #ifdef __USE_PROTOS
@@ -172,8 +160,12 @@ extern SetWordType zzerr6[];
 extern SetWordType zzerr7[];
 extern SetWordType zzerr8[];
 extern SetWordType setwd2[];
-extern SetWordType setwd3[];
 extern SetWordType zzerr9[];
 extern SetWordType zzerr10[];
 extern SetWordType zzerr11[];
+extern SetWordType zzerr12[];
+extern SetWordType setwd3[];
+extern SetWordType zzerr13[];
+extern SetWordType zzerr14[];
+extern SetWordType zzerr15[];
 extern SetWordType setwd4[];

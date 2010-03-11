@@ -216,7 +216,7 @@ int main(int argc,char *argv[])
 #token ASIG         ":="
 
 /* [Afegits] */
-
+#token VAR          "VAR"
 #token BOOL         "BOOL"
 
 #token MINUS         "\-"
@@ -260,10 +260,10 @@ dec_var: IDENT^ (constr_type | ASIG! expression);
 
 l_dec_blocs: ( dec_bloc )* <<#0=createASTlist(_sibling);>> ;
 
-dec_bloc: (PROCEDURE^ ENDPROCEDURE |
+dec_bloc: (PROCEDURE^  ENDPROCEDURE |
            FUNCTION^ ENDFUNCTION)<</*needs modification*/ >>;
 
-constr_type: INT | STRUCT^ (field)* ENDSTRUCT!;
+constr_type: BOOL | INT | STRUCT^ (field)* ENDSTRUCT!;
 
 field: IDENT^ constr_type;
 
@@ -276,14 +276,10 @@ instruction:
     	| IF^ expression THEN! l_instrs (ELSE! l_instrs | ) ENDIF!
 			| WHILE^ expression DO! l_instrs ENDWHILE!;
 
-expression: expression1;
-expression1: expression2 (AND^ expression2 | OR^ expression2)*;
-expression2: expression3 (EQUAL^ expression3 | GTHAN^ expression3 | LTHAN^ expression3)*;
-expression3: term (PLUS^ term | MINUS^ term)*;
-term: expsimple (TIMES^ unari | DIV^ unari)*;
-unari: NOT^ unari | MINUS^ unari | expression4;
-expression4: OPENPAR! expression CLOSEPAR! | expsimple;
+expression: comparison_exp ((AND^ | OR^) comparison_exp)*;
+comparison_exp: plus_exp ((EQUAL^ | GTHAN^ | LTHAN^) plus_exp)*;
+plus_exp: term_exp ((PLUS^ | MINUS^) term_exp)*;
+term_exp: expsimple ((TIMES^ | DIV^) unari_exp)*;
+unari_exp: (NOT^ | MINUS^) expsimple | expsimple;
 
-expsimple:
-        IDENT^ (DOT^ IDENT)*
-      | INTCONST;
+expsimple: IDENT^ (DOT^ IDENT)* | INTCONST | OPENPAR! expression CLOSEPAR!;

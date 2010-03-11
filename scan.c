@@ -157,146 +157,152 @@ static void act13()
 
 static void act14()
 { 
-		NLA = BOOL;
+		NLA = VAR;
 	}
 
 
 static void act15()
 { 
-		NLA = MINUS;
+		NLA = BOOL;
 	}
 
 
 static void act16()
 { 
-		NLA = IF;
+		NLA = MINUS;
 	}
 
 
 static void act17()
 { 
-		NLA = THEN;
+		NLA = IF;
 	}
 
 
 static void act18()
 { 
-		NLA = ELSE;
+		NLA = THEN;
 	}
 
 
 static void act19()
 { 
-		NLA = ENDIF;
+		NLA = ELSE;
 	}
 
 
 static void act20()
 { 
-		NLA = WHILE;
+		NLA = ENDIF;
 	}
 
 
 static void act21()
 { 
-		NLA = DO;
+		NLA = WHILE;
 	}
 
 
 static void act22()
 { 
-		NLA = ENDWHILE;
+		NLA = DO;
 	}
 
 
 static void act23()
 { 
-		NLA = AND;
+		NLA = ENDWHILE;
 	}
 
 
 static void act24()
 { 
-		NLA = OR;
+		NLA = AND;
 	}
 
 
 static void act25()
 { 
-		NLA = NOT;
+		NLA = OR;
 	}
 
 
 static void act26()
 { 
-		NLA = TIMES;
+		NLA = NOT;
 	}
 
 
 static void act27()
 { 
-		NLA = DIV;
+		NLA = TIMES;
 	}
 
 
 static void act28()
 { 
-		NLA = EQUAL;
+		NLA = DIV;
 	}
 
 
 static void act29()
 { 
-		NLA = GTHAN;
+		NLA = EQUAL;
 	}
 
 
 static void act30()
 { 
-		NLA = LTHAN;
+		NLA = GTHAN;
 	}
 
 
 static void act31()
 { 
-		NLA = DOT;
+		NLA = LTHAN;
 	}
 
 
 static void act32()
 { 
-		NLA = IDENT;
+		NLA = DOT;
 	}
 
 
 static void act33()
 { 
-		NLA = INTCONST;
+		NLA = IDENT;
 	}
 
 
 static void act34()
+{ 
+		NLA = INTCONST;
+	}
+
+
+static void act35()
 { 
 		NLA = COMMENT;
     printf("%s",zzlextext); zzskip();   
 	}
 
 
-static void act35()
+static void act36()
 { 
 		NLA = WHITESPACE;
     printf("%s",zzlextext); zzskip();   
 	}
 
 
-static void act36()
+static void act37()
 { 
 		NLA = NEWLINE;
     zzline++; printf("\n%3d: ", zzline); zzskip();   
 	}
 
 
-static void act37()
+static void act38()
 { 
 		NLA = LEXICALERROR;
     printf("Lexical error: symbol '%s' ignored!\n", zzlextext);
@@ -3433,20 +3439,20 @@ DfaState *dfa[104] = {
 
 
 DfaState accepts[105] = {
-  0, 1, 37, 35, 36, 11, 12, 26, 10, 15, 
-  31, 27, 33, 37, 30, 28, 29, 32, 32, 32, 
-  32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 
-  35, 34, 33, 13, 32, 32, 32, 21, 32, 32, 
-  16, 32, 32, 24, 32, 32, 32, 32, 32, 32, 
-  34, 23, 32, 32, 32, 6, 25, 32, 32, 32, 
-  32, 32, 32, 14, 18, 32, 32, 32, 32, 32, 
-  32, 32, 17, 4, 32, 32, 19, 32, 32, 32, 
-  32, 32, 32, 20, 32, 32, 32, 32, 32, 32, 
-  7, 32, 32, 32, 5, 32, 2, 9, 32, 32, 
-  22, 32, 8, 3, 0
+  0, 1, 38, 36, 37, 11, 12, 27, 10, 16, 
+  32, 28, 34, 38, 31, 29, 30, 33, 33, 33, 
+  33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 
+  36, 35, 34, 13, 33, 33, 33, 22, 33, 33, 
+  17, 33, 33, 25, 33, 33, 33, 33, 33, 33, 
+  35, 24, 33, 33, 33, 6, 26, 33, 33, 33, 
+  14, 33, 33, 15, 19, 33, 33, 33, 33, 33, 
+  33, 33, 18, 4, 33, 33, 20, 33, 33, 33, 
+  33, 33, 33, 21, 33, 33, 33, 33, 33, 33, 
+  7, 33, 33, 33, 5, 33, 2, 9, 33, 33, 
+  23, 33, 8, 3, 0
 };
 
-void (*actions[38])() = {
+void (*actions[39])() = {
 	zzerraction,
 	act1,
 	act2,
@@ -3484,7 +3490,8 @@ void (*actions[38])() = {
 	act34,
 	act35,
 	act36,
-	act37
+	act37,
+	act38
 };
 
 static DfaState dfa_base[] = {

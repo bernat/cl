@@ -133,6 +133,11 @@ WRITELN
 		NLA = ASIG;
 	>>
 
+VAR
+	<<
+		NLA = VAR;
+	>>
+
 BOOL
 	<<
 		NLA = BOOL;
