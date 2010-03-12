@@ -138,12 +138,6 @@ extern void term_exp();
 #endif
 
 #ifdef __USE_PROTOS
-void unari_exp(AST**_root);
-#else
-extern void unari_exp();
-#endif
-
-#ifdef __USE_PROTOS
 void expsimple(AST**_root);
 #else
 extern void expsimple();
@@ -167,5 +161,4 @@ extern SetWordType zzerr12[];
 extern SetWordType setwd3[];
 extern SetWordType zzerr13[];
 extern SetWordType zzerr14[];
-extern SetWordType zzerr15[];
 extern SetWordType setwd4[];

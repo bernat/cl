@@ -279,7 +279,5 @@ instruction:
 expression: comparison_exp ((AND^ | OR^) comparison_exp)*;
 comparison_exp: plus_exp ((EQUAL^ | GTHAN^ | LTHAN^) plus_exp)*;
 plus_exp: term_exp ((PLUS^ | MINUS^) term_exp)*;
-term_exp: expsimple ((TIMES^ | DIV^) unari_exp)*;
-unari_exp: (NOT^ | MINUS^) expsimple | expsimple;
-
-expsimple: IDENT^ (DOT^ IDENT)* | INTCONST | OPENPAR! expression CLOSEPAR!;
+term_exp: expsimple ((TIMES^ | DIV^) expsimple)*;
+expsimple: (NOT^ | MINUS^) expsimple | IDENT^ (DOT^ IDENT)* | INTCONST | OPENPAR! expression CLOSEPAR!;
