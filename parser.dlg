@@ -143,9 +143,19 @@ BOOL
 		NLA = BOOL;
 	>>
 
-\-
+\"~[\"]*\"
 	<<
-		NLA = MINUS;
+		NLA = STRING;
+	>>
+
+Array
+	<<
+		NLA = ARRAY;
+	>>
+
+Of
+	<<
+		NLA = OF;
 	>>
 
 IF
@@ -198,6 +208,11 @@ NOT
 		NLA = NOT;
 	>>
 
+\-
+	<<
+		NLA = MINUS;
+	>>
+
 \*
 	<<
 		NLA = TIMES;
@@ -221,6 +236,16 @@ NOT
 \<
 	<<
 		NLA = LTHAN;
+	>>
+
+\[
+	<<
+		NLA = OPENCLAU;
+	>>
+
+\]
+	<<
+		NLA = CLOSECLAU;
 	>>
 
 .

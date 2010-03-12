@@ -55,6 +55,10 @@ void zzcr_attr(Attrib *attr,int type,char *text)
     attr->kind="intconst";
     attr->text=text;
     break;
+	case STRING:
+	    attr->kind="string";
+	    attr->text=text;
+	break;
   default:
     attr->kind=lowercase(text);
     attr->text="";
@@ -218,9 +222,11 @@ int main(int argc,char *argv[])
 /* [Afegits] */
 #token VAR          "VAR"
 #token BOOL         "BOOL"
+#token STRING			"\"~[\"]*\""
 
-#token MINUS         "\-"
 
+#token ARRAY				"Array"
+#token OF						"Of"
 
 #token IF           "IF"
 #token THEN         "THEN"
@@ -232,11 +238,20 @@ int main(int argc,char *argv[])
 #token AND					"AND"
 #token OR						"OR"
 #token NOT					"NOT"
+#token MINUS        "\-"
 #token TIMES        "\*"
 #token DIV	        "\/"
 #token EQUAL				"\="
 #token GTHAN        "\>"
 #token LTHAN        "\<"
+
+#token OPENCLAU			"\["
+#token CLOSECLAU		"\]"
+
+#token REF					"Ref"
+#token VAL					"Val"
+#token COMA					","
+
 /* [/Afegits] */
 
 #token DOT          "."
@@ -256,14 +271,23 @@ dec_vars: (VARS! l_dec_vars ENDVARS! | ) <<#0=createASTlist(_sibling);>>;
 
 l_dec_vars: (dec_var)* ;
 
-dec_var: IDENT^ (constr_type | ASIG! expression);
+dec_var: IDENT^ (constr_type);
 
 l_dec_blocs: ( dec_bloc )* <<#0=createASTlist(_sibling);>> ;
 
-dec_bloc: (PROCEDURE^  ENDPROCEDURE |
-           FUNCTION^ ENDFUNCTION)<</*needs modification*/ >>;
+dec_bloc: (PROCEDURE^ cap_procedure dec_vars l_dec_blocs l_instr  ENDPROCEDURE 
+					| FUNCTION^ ENDFUNCTION) <<#0=createASTlist(_sibling);>>;
+					
+cap_procedure: IDENT^ OPENPAR! cjt_parametres CLOSEPAR!;
 
-constr_type: BOOL | INT | STRUCT^ (field)* ENDSTRUCT!;
+//No va
+cjt_parametres: (dec_var COMA parametre)*)*; 
+
+parametre: REF^ dec_var | VAL^ IDENT^ constr_type;
+
+constr_type: BOOL | INT 
+	| STRUCT^ (field)* ENDSTRUCT! 
+	| ARRAY^ OPENCLAU! INTCONST CLOSECLAU! OF! constr_type;
 
 field: IDENT^ constr_type;
 
@@ -271,7 +295,7 @@ l_instrs: (instruction)* <<#0=createASTlist(_sibling);>>;
 
 instruction:
 			VAR^ IDENT (constr_type | ASIG! expression) 
-			|	IDENT ( DOT^ IDENT)* ASIG^ expression
+			|	IDENT ( DOT^ IDENT | OPENCLAU^ expression CLOSECLAU!)*  ASIG^ expression
       |	WRITELN^ OPENPAR! ( expression | STRING ) CLOSEPAR!
     	| IF^ expression THEN! l_instrs (ELSE! l_instrs | ) ENDIF!
 			| WHILE^ expression DO! l_instrs ENDWHILE!;
@@ -280,4 +304,8 @@ expression: comparison_exp ((AND^ | OR^) comparison_exp)*;
 comparison_exp: plus_exp ((EQUAL^ | GTHAN^ | LTHAN^) plus_exp)*;
 plus_exp: term_exp ((PLUS^ | MINUS^) term_exp)*;
 term_exp: expsimple ((TIMES^ | DIV^) expsimple)*;
-expsimple: (NOT^ | MINUS^) expsimple | IDENT^ (DOT^ IDENT)* | INTCONST | OPENPAR! expression CLOSEPAR!;
+expsimple: (NOT^ | MINUS^) expsimple 
+	| IDENT^ (DOT^ IDENT | OPENCLAU^ expression CLOSECLAU!)* 
+	| OPENPAR! expression CLOSEPAR!
+	| INTCONST;
+
