@@ -45,17 +45,21 @@
 #define LTHAN 34
 #define OPENCLAU 35
 #define CLOSECLAU 36
-#define DOT 37
-#define IDENT 38
-#define INTCONST 39
-#define COMMENT 40
-#define WHITESPACE 41
-#define NEWLINE 42
-#define LEXICALERROR 43
-#define PROCEDURE 44
-#define ENDPROCEDURE 45
-#define FUNCTION 46
-#define ENDFUNCTION 47
+#define REF 37
+#define VAL 38
+#define COMA 39
+#define DOT 40
+#define IDENT 41
+#define INTCONST 42
+#define COMMENT 43
+#define WHITESPACE 44
+#define NEWLINE 45
+#define LEXICALERROR 46
+#define PROCEDURE 47
+#define ENDPROCEDURE 48
+#define FUNCTION 49
+#define RETURN 50
+#define ENDFUNCTION 51
 
 #ifdef __USE_PROTOS
 void program(AST**_root);
@@ -91,6 +95,30 @@ extern void l_dec_blocs();
 void dec_bloc(AST**_root);
 #else
 extern void dec_bloc();
+#endif
+
+#ifdef __USE_PROTOS
+void cap_procedure(AST**_root);
+#else
+extern void cap_procedure();
+#endif
+
+#ifdef __USE_PROTOS
+void cap_function(AST**_root);
+#else
+extern void cap_function();
+#endif
+
+#ifdef __USE_PROTOS
+void cjt_parametres(AST**_root);
+#else
+extern void cjt_parametres();
+#endif
+
+#ifdef __USE_PROTOS
+void parametre(AST**_root);
+#else
+extern void parametre();
 #endif
 
 #ifdef __USE_PROTOS
@@ -147,22 +175,31 @@ void expsimple(AST**_root);
 extern void expsimple();
 #endif
 
+#ifdef __USE_PROTOS
+void params(AST**_root);
+#else
+extern void params();
+#endif
+
 #endif
 extern SetWordType zzerr1[];
 extern SetWordType zzerr2[];
-extern SetWordType zzerr3[];
 extern SetWordType setwd1[];
+extern SetWordType zzerr3[];
 extern SetWordType zzerr4[];
 extern SetWordType zzerr5[];
+extern SetWordType setwd2[];
 extern SetWordType zzerr6[];
 extern SetWordType zzerr7[];
 extern SetWordType zzerr8[];
-extern SetWordType setwd2[];
 extern SetWordType zzerr9[];
 extern SetWordType zzerr10[];
 extern SetWordType zzerr11[];
-extern SetWordType zzerr12[];
 extern SetWordType setwd3[];
+extern SetWordType zzerr12[];
 extern SetWordType zzerr13[];
 extern SetWordType zzerr14[];
+extern SetWordType zzerr15[];
 extern SetWordType setwd4[];
+extern SetWordType zzerr16[];
+extern SetWordType setwd5[];

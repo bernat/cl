@@ -275,15 +275,15 @@ dec_var: IDENT^ (constr_type);
 
 l_dec_blocs: ( dec_bloc )* <<#0=createASTlist(_sibling);>> ;
 
-dec_bloc: (PROCEDURE^ cap_procedure dec_vars l_dec_blocs l_instr  ENDPROCEDURE 
-					| FUNCTION^ ENDFUNCTION) <<#0=createASTlist(_sibling);>>;
+dec_bloc: (PROCEDURE^ cap_procedure dec_vars l_dec_blocs l_instrs  ENDPROCEDURE 
+					| FUNCTION^ cap_function dec_vars l_dec_blocs l_instrs RETURN! expression ENDFUNCTION!) <<#0=createASTlist(_sibling);>>;
 					
-cap_procedure: IDENT^ OPENPAR! cjt_parametres CLOSEPAR!;
+cap_procedure: IDENT^ cjt_parametres;
+cap_function: IDENT^ cjt_parametres RETURN! constr_type;
 
-//No va
-cjt_parametres: (dec_var COMA parametre)*)*; 
+cjt_parametres: OPENPAR! (parametre (COMA! parametre)* | ) CLOSEPAR!; 
 
-parametre: REF^ dec_var | VAL^ IDENT^ constr_type;
+parametre: (REF^ | VAL^) IDENT constr_type;
 
 constr_type: BOOL | INT 
 	| STRUCT^ (field)* ENDSTRUCT! 
@@ -305,7 +305,8 @@ comparison_exp: plus_exp ((EQUAL^ | GTHAN^ | LTHAN^) plus_exp)*;
 plus_exp: term_exp ((PLUS^ | MINUS^) term_exp)*;
 term_exp: expsimple ((TIMES^ | DIV^) expsimple)*;
 expsimple: (NOT^ | MINUS^) expsimple 
-	| IDENT^ (DOT^ IDENT | OPENCLAU^ expression CLOSECLAU!)* 
+	| IDENT^ (DOT^ IDENT | OPENCLAU^ expression CLOSECLAU! | OPENPAR! params CLOSEPAR!)* 
 	| OPENPAR! expression CLOSEPAR!
 	| INTCONST;
 
+params: (expression (COMA! expression)* | );

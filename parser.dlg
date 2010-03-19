@@ -248,6 +248,21 @@ NOT
 		NLA = CLOSECLAU;
 	>>
 
+Ref
+	<<
+		NLA = REF;
+	>>
+
+Val
+	<<
+		NLA = VAL;
+	>>
+
+,
+	<<
+		NLA = COMA;
+	>>
+
 .
 	<<
 		NLA = DOT;
