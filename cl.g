@@ -55,7 +55,7 @@ void zzcr_attr(Attrib *attr,int type,char *text)
     attr->kind="intconst";
     attr->text=text;
     break;
-	case STRING:
+	case STRINGEXP:
 	    attr->kind="string";
 	    attr->text=text;
 	break;
@@ -218,11 +218,18 @@ int main(int argc,char *argv[])
 #token OPENPAR      "\("
 #token CLOSEPAR     "\)"
 #token ASIG         ":="
+#token RETURN				"RETURN"
+#token CERT					"TRUE"
+#token FALS					"FALSE"
 
-/* [Afegits] */
+#token PROCEDURE		"PROCEDURE"
+#token ENDPROCEDURE "ENDPROCEDURE"
+#token FUNCTION			"FUNCTION"
+#token ENDFUNCTION	"ENDFUNCTION"
+
 #token VAR          "VAR"
 #token BOOL         "BOOL"
-#token STRING			"\"~[\"]*\""
+#token STRINGEXP		"\"~[\"]*\""
 
 
 #token ARRAY				"Array"
@@ -252,7 +259,6 @@ int main(int argc,char *argv[])
 #token VAL					"Val"
 #token COMA					","
 
-/* [/Afegits] */
 
 #token DOT          "."
 #token IDENT        "[a-zA-Z][a-zA-Z0-9]*"
@@ -275,13 +281,13 @@ dec_var: IDENT^ (constr_type);
 
 l_dec_blocs: ( dec_bloc )* <<#0=createASTlist(_sibling);>> ;
 
-dec_bloc: (PROCEDURE^ cap_procedure dec_vars l_dec_blocs l_instrs  ENDPROCEDURE 
-					| FUNCTION^ cap_function dec_vars l_dec_blocs l_instrs RETURN! expression ENDFUNCTION!) <<#0=createASTlist(_sibling);>>;
+dec_bloc: (PROCEDURE^ cap_procedure dec_vars l_dec_blocs l_instrs  ENDPROCEDURE! 
+					| FUNCTION^ cap_function dec_vars l_dec_blocs l_instrs RETURN! expression ENDFUNCTION!);
 					
 cap_procedure: IDENT^ cjt_parametres;
 cap_function: IDENT^ cjt_parametres RETURN! constr_type;
 
-cjt_parametres: OPENPAR! (parametre (COMA! parametre)* | ) CLOSEPAR!; 
+cjt_parametres: OPENPAR! (parametre (COMA! parametre)* | ) CLOSEPAR! <<#0=createASTlist(_sibling);>>; 
 
 parametre: (REF^ | VAL^) IDENT constr_type;
 
@@ -295,7 +301,7 @@ l_instrs: (instruction)* <<#0=createASTlist(_sibling);>>;
 
 instruction:
 			VAR^ IDENT (constr_type | ASIG! expression) 
-			|	IDENT ( DOT^ IDENT | OPENCLAU^ expression CLOSECLAU!)*  ASIG^ expression
+			|	IDENT ( DOT^ IDENT | OPENCLAU^ expression CLOSECLAU!)*  (ASIG^ expression | OPENPAR^ params CLOSEPAR!)
       |	WRITELN^ OPENPAR! ( expression | STRING ) CLOSEPAR!
     	| IF^ expression THEN! l_instrs (ELSE! l_instrs | ) ENDIF!
 			| WHILE^ expression DO! l_instrs ENDWHILE!;
@@ -307,6 +313,6 @@ term_exp: expsimple ((TIMES^ | DIV^) expsimple)*;
 expsimple: (NOT^ | MINUS^) expsimple 
 	| IDENT^ (DOT^ IDENT | OPENCLAU^ expression CLOSECLAU! | OPENPAR! params CLOSEPAR!)* 
 	| OPENPAR! expression CLOSEPAR!
-	| INTCONST;
+	| INTCONST | CERT | FALS | STRINGEXP;	
 
-params: (expression (COMA! expression)* | );
+params: (expression (COMA! expression)* | ) <<#0=createASTlist(_sibling);>>;

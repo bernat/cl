@@ -133,6 +133,41 @@ WRITELN
 		NLA = ASIG;
 	>>
 
+RETURN
+	<<
+		NLA = RETURN;
+	>>
+
+TRUE
+	<<
+		NLA = CERT;
+	>>
+
+FALSE
+	<<
+		NLA = FALS;
+	>>
+
+PROCEDURE
+	<<
+		NLA = PROCEDURE;
+	>>
+
+ENDPROCEDURE
+	<<
+		NLA = ENDPROCEDURE;
+	>>
+
+FUNCTION
+	<<
+		NLA = FUNCTION;
+	>>
+
+ENDFUNCTION
+	<<
+		NLA = ENDFUNCTION;
+	>>
+
 VAR
 	<<
 		NLA = VAR;
@@ -145,7 +180,7 @@ BOOL
 
 \"~[\"]*\"
 	<<
-		NLA = STRING;
+		NLA = STRINGEXP;
 	>>
 
 Array
