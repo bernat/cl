@@ -113,6 +113,16 @@ WRITELN
 		NLA = WRITELN;
 	>>
 
+WRITE
+	<<
+		NLA = WRITE;
+	>>
+
+READ
+	<<
+		NLA = READ;
+	>>
+
 \+
 	<<
 		NLA = PLUS;
@@ -180,7 +190,7 @@ BOOL
 
 \"~[\"]*\"
 	<<
-		NLA = STRINGEXP;
+		NLA = STRING;
 	>>
 
 Array

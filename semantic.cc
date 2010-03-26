@@ -189,6 +189,9 @@ void TypeCheck(AST *a,string info)
     insert_vars(child(child(a,0),0));
     //insert_headers(child(child(a,1),0));
     //TypeCheck(child(a,1));
+
+		symboltable.write(); //Debugging
+		
     TypeCheck(child(a,2),"instruction");
 
     symboltable.pop();
@@ -228,12 +231,12 @@ void TypeCheck(AST *a,string info)
   else if (a->kind=="intconst") {
     a->tp=create_type("int",0,0);
   } 
-  else if (a->kind=="+" || (a->kind=="-" && child(a,1)!=0) || a->kind=="*"
-	   || a->kind=="/") {
+  else if (a->kind=="+" || (a->kind=="-" && child(a,1)!=0) || a->kind=="*" || a->kind=="/") 
+	{
     TypeCheck(child(a,0));
     TypeCheck(child(a,1));
-    if ((child(a,0)->tp->kind!="error" && child(a,0)->tp->kind!="int") ||
-	(child(a,1)->tp->kind!="error" && child(a,1)->tp->kind!="int")) {
+    if ((child(a,0)->tp->kind!="error" && child(a,0)->tp->kind!="int") ||	(child(a,1)->tp->kind!="error" && child(a,1)->tp->kind!="int")) 
+		{
       errorincompatibleoperator(a->line,a->kind);
     }
     a->tp=create_type("int",0,0);
@@ -247,15 +250,15 @@ void TypeCheck(AST *a,string info)
       errorreadwriterequirebasic(a->line,a->kind);
     }
   }
-  else if (a->kind==".") {
+  else if (a->kind==".") 
+	{
     TypeCheck(child(a,0));
     a->ref=child(a,0)->ref;
     if (child(a,0)->tp->kind!="error") {
       if (child(a,0)->tp->kind!="struct") {
 	errorincompatibleoperator(a->line,"struct.");
       }
-      else if (child(a,0)->tp->struct_field.find(child(a,1)->text)==
-	       child(a,0)->tp->struct_field.end()) {
+      else if (child(a,0)->tp->struct_field.find(child(a,1)->text) == child(a,0)->tp->struct_field.end()) {
 	errornonfielddefined(a->line,child(a,1)->text);
       } 
       else {

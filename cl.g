@@ -55,7 +55,7 @@ void zzcr_attr(Attrib *attr,int type,char *text)
     attr->kind="intconst";
     attr->text=text;
     break;
-	case STRINGEXP:
+	case STRING:
 	    attr->kind="string";
 	    attr->text=text;
 	break;
@@ -214,6 +214,8 @@ int main(int argc,char *argv[])
 #token STRUCT       "STRUCT"
 #token ENDSTRUCT    "ENDSTRUCT"
 #token WRITELN      "WRITELN"
+#token WRITE      	"WRITE"
+#token READ 		    "READ"
 #token PLUS         "\+"
 #token OPENPAR      "\("
 #token CLOSEPAR     "\)"
@@ -229,7 +231,7 @@ int main(int argc,char *argv[])
 
 #token VAR          "VAR"
 #token BOOL         "BOOL"
-#token STRINGEXP		"\"~[\"]*\""
+#token STRING		"\"~[\"]*\""
 
 
 #token ARRAY				"Array"
@@ -301,8 +303,9 @@ l_instrs: (instruction)* <<#0=createASTlist(_sibling);>>;
 
 instruction:
 			VAR^ IDENT (constr_type | ASIG! expression) 
-			|	IDENT ( DOT^ IDENT | OPENCLAU^ expression CLOSECLAU!)*  (ASIG^ expression | OPENPAR^ params CLOSEPAR!)
-      |	WRITELN^ OPENPAR! ( expression | STRING ) CLOSEPAR!
+			|	IDENT ( DOT^ IDENT | OPENCLAU^ expression CLOSECLAU!)*  (ASIG^ expression | OPENPAR^ params)
+      |	(WRITELN^ | WRITE^) OPENPAR! ( expression | STRING ) CLOSEPAR!
+			| READ^ OPENPAR! (expression) CLOSEPAR!
     	| IF^ expression THEN! l_instrs (ELSE! l_instrs | ) ENDIF!
 			| WHILE^ expression DO! l_instrs ENDWHILE!;
 
@@ -311,8 +314,8 @@ comparison_exp: plus_exp ((EQUAL^ | GTHAN^ | LTHAN^) plus_exp)*;
 plus_exp: term_exp ((PLUS^ | MINUS^) term_exp)*;
 term_exp: expsimple ((TIMES^ | DIV^) expsimple)*;
 expsimple: (NOT^ | MINUS^) expsimple 
-	| IDENT^ (DOT^ IDENT | OPENCLAU^ expression CLOSECLAU! | OPENPAR! params CLOSEPAR!)* 
+	| IDENT^ (DOT^ IDENT | OPENCLAU^ expression CLOSECLAU! | OPENPAR^ params )* 
 	| OPENPAR! expression CLOSEPAR!
-	| INTCONST | CERT | FALS | STRINGEXP;	
+	| INTCONST | CERT | FALS;	
 
-params: (expression (COMA! expression)* | ) <<#0=createASTlist(_sibling);>>;
+params: (expression (COMA! expression)* | ) CLOSEPAR! <<#0=createASTlist(_sibling);>>;
