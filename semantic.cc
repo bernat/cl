@@ -202,6 +202,8 @@ void TypeCheck(AST *a,string info)
       TypeCheck(a1,info);
     }
   } 
+
+	// Identificador
   else if (a->kind=="ident") {
     if (!symboltable.find(a->text)) {
       errornondeclaredident(a->line, a->text);
@@ -211,9 +213,13 @@ void TypeCheck(AST *a,string info)
       a->ref=1;
     }
   } 
+
+	// Struct
   else if (a->kind=="struct") {
     construct_struct(a);
   }
+
+	// Assignació
   else if (a->kind==":=") {
     TypeCheck(child(a,0));
     TypeCheck(child(a,1));
@@ -228,9 +234,13 @@ void TypeCheck(AST *a,string info)
       a->tp=child(a,0)->tp;
     }
   } 
+
+	// Número
   else if (a->kind=="intconst") {
     a->tp=create_type("int",0,0);
   } 
+
+	// Aritmètiques
   else if (a->kind=="+" || (a->kind=="-" && child(a,1)!=0) || a->kind=="*" || a->kind=="/") 
 	{
     TypeCheck(child(a,0));
@@ -241,15 +251,83 @@ void TypeCheck(AST *a,string info)
     }
     a->tp=create_type("int",0,0);
   }
-  else if (isbasickind(a->kind)) {
+
+	// Menys unari
+	else if (a->kind=="-" && child(a,1)==0)
+	{
+		TypeCheck(child(a,0));
+		if (child(a,0)->tp->kind!="error" && child(a,0)->tp->kind!="int")
+		{
+			errorincompatibleoperator(a->line,a->kind);
+		}
+		a->tp=create_type("int",0,0);
+	}
+
+	// Comparadors aritmètics
+  else if (a->kind=="<" || a->kind==">") 
+	{
+    TypeCheck(child(a,0));
+    TypeCheck(child(a,1));
+    if ((child(a,0)->tp->kind!="error" && child(a,0)->tp->kind!="int") ||	(child(a,1)->tp->kind!="error" && child(a,1)->tp->kind!="int")) 
+		{
+      errorincompatibleoperator(a->line,a->kind);
+    }
+    a->tp=create_type("int",0,0);
+  }
+ 
+	// Comparadors lògics
+  else if (a->kind=="or" || a->kind=="and") 
+	{
+    TypeCheck(child(a,0));
+    TypeCheck(child(a,1));
+    if ((child(a,0)->tp->kind!="error" && child(a,0)->tp->kind!="bool") ||	(child(a,1)->tp->kind!="error" && child(a,1)->tp->kind!="bool")) 
+		{
+      errorincompatibleoperator(a->line,a->kind);
+    }
+    a->tp=create_type("bool",0,0);
+  }
+
+	// Not (unari)
+	else if (a->kind=="not" && child(a,1)==0)
+	{
+		TypeCheck(child(a,0));
+		if (child(a,0)->tp->kind!="error" && child(a,0)->tp->kind!="bool")
+		{
+			errorincompatibleoperator(a->line,a->kind);
+		}
+		a->tp=create_type("bool",0,0);
+	}
+
+	// Tipus bàsic
+ 	else if (isbasickind(a->kind)) {
     a->tp=create_type(a->kind,0,0);
   }
+
+	// Writeln
   else if (a->kind=="writeln") {
     TypeCheck(child(a,0));
     if (child(a,0)->tp->kind!="error" && !isbasickind(child(a,0)->tp->kind)) {
       errorreadwriterequirebasic(a->line,a->kind);
     }
   }
+
+	// If
+	else if (a->kind=="if") {
+		TypeCheck(child(a,0));
+		if (child(a,0)->tp-kind!="error" && child(a,0)->tp->kind!="bool")
+		{
+			errorbooleanrequired(a->line,a->kind);
+		}
+		TypeCheck(child(a,1));
+		
+	}
+
+  else if ((a->kind=="while") || (a->kind=="=")) {
+		printf("no faig res\n");
+		if(child(a,0) != 0) TypeCheck(child(a,0));
+		if(child(a,1) != 0) TypeCheck(child(a,1));
+	}
+
   else if (a->kind==".") 
 	{
     TypeCheck(child(a,0));
