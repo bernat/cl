@@ -314,15 +314,29 @@ void TypeCheck(AST *a,string info)
 	// If
 	else if (a->kind=="if") {
 		TypeCheck(child(a,0));
-		if (child(a,0)->tp-kind!="error" && child(a,0)->tp->kind!="bool")
+		if (child(a,0)->tp->kind!="error" && child(a,0)->tp->kind!="bool")
 		{
 			errorbooleanrequired(a->line,a->kind);
 		}
-		TypeCheck(child(a,1));
-		
+		TypeCheck(child(a,1), "instruction");
+
+		// Cas té ELSE
+		if (child(a,2) != 0) TypeCheck(child(a,2), "instruction"); 
 	}
 
-  else if ((a->kind=="while") || (a->kind=="=")) {
+	// While	
+	else if (a->kind=="while") {
+		TypeCheck(child(a,0));
+		if (child(a,0)->tp->kind!="error" && child(a,0)->tp->kind!="bool")
+		{
+			errorbooleanrequired(a->line,a->kind);
+		}
+		TypeCheck(child(a,1), "instruction");
+	}
+	
+
+
+  else if (a->kind=="=") {
 		printf("no faig res\n");
 		if(child(a,0) != 0) TypeCheck(child(a,0));
 		if(child(a,1) != 0) TypeCheck(child(a,1));
