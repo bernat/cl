@@ -287,6 +287,17 @@ void TypeCheck(AST *a,string info)
     a->tp=create_type("bool",0,0);
   }
 
+	else if (a->kind=="=")
+	{
+		TypeCheck(child(a,0));
+		TypeCheck(child(a,1));
+		if (child(a,0)->tp->kind!="error" && !equivalent_types(child(a,0)->tp,child(a,1)->tp))
+		{
+			errorincompatibleoperator(a->line,a->kind);
+		}
+		a->tp=create_type("bool",0,0);
+	}
+
 	// Not (unari)
 	else if (a->kind=="not" && child(a,1)==0)
 	{
@@ -314,7 +325,7 @@ void TypeCheck(AST *a,string info)
 	// If
 	else if (a->kind=="if") {
 		TypeCheck(child(a,0));
-		if (child(a,0)->tp->kind!="error" && child(a,0)->tp->kind!="bool")
+		if (child(a,0)->tp->kind != "error" && child(a,0)->tp->kind != 	"bool")
 		{
 			errorbooleanrequired(a->line,a->kind);
 		}
@@ -327,19 +338,11 @@ void TypeCheck(AST *a,string info)
 	// While	
 	else if (a->kind=="while") {
 		TypeCheck(child(a,0));
-		if (child(a,0)->tp->kind!="error" && child(a,0)->tp->kind!="bool")
+		if (child(a,0)->tp->kind != "error" && child(a,0)->tp->kind != "bool")
 		{
 			errorbooleanrequired(a->line,a->kind);
 		}
 		TypeCheck(child(a,1), "instruction");
-	}
-	
-
-
-  else if (a->kind=="=") {
-		printf("no faig res\n");
-		if(child(a,0) != 0) TypeCheck(child(a,0));
-		if(child(a,1) != 0) TypeCheck(child(a,1));
 	}
 
   else if (a->kind==".") 

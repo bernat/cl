@@ -96,20 +96,20 @@ int symtab::jumped_scopes(string id)
 
 void symtab::write()
 {
-  scope *sc=current;
-
-  cout<<"Contents of symbol table:"<<endl;
-  while (sc!=0) {
-    cout<<"----------------"<<endl;
-    for (list<string>::iterator it=sc->ids.begin();
-	 it!=sc->ids.end();it++) {
-      cout<<*it<<":"<<sc->m[*it].kind<<",";
-      write_type(sc->m[*it].tp);
-      cout<<endl;
-    }
-    sc=sc->previous;
-  }
-  cout<<"----------------"<<endl;
+  // scope *sc=current;
+  // 
+  //   cout<<"Contents of symbol table:"<<endl;
+  //   while (sc!=0) {
+  //     cout<<"----------------"<<endl;
+  //     for (list<string>::iterator it=sc->ids.begin();
+  // 	 it!=sc->ids.end();it++) {
+  //       cout<<*it<<":"<<sc->m[*it].kind<<",";
+  //       write_type(sc->m[*it].tp);
+  //       cout<<endl;
+  //     }
+  //     sc=sc->previous;
+  //   }
+  //   cout<<"----------------"<<endl;
 }
 
 
