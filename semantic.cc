@@ -16,6 +16,7 @@ using namespace std;
 #include "myASTnode.hh"
 
 #include "semantic.hh"
+#include "util.hh"
 
 // feedback the main program with our error status
 int TypeError = 0;
@@ -219,6 +220,41 @@ void TypeCheck(AST *a,string info)
     construct_struct(a);
   }
 
+	// Bool
+	else if (a->kind=="true" || a->kind=="false") {
+		a->tp=create_type("bool",0,0);
+	}
+	
+	// String
+	else if (a->kind=="string") {
+		a->tp=create_type("string",0,0);
+	}
+
+	// Número
+  else if (a->kind=="intconst") {
+    a->tp=create_type("int",0,0);
+  }
+
+	// Array Declaració
+	else if (a->kind=="array") {
+		TypeCheck(child(a,1));
+		a->tp=create_type("array",child(a,1)->tp,0);
+		a->tp->numelemsarray = stringtoint(child(a,0)->text);
+	}
+	
+	// Array crida
+	else if (a->kind=="[") {
+		TypeCheck(child(a,1));
+		TypeCheck(child(a,0));
+		a->ref=child(a,0)->ref;
+		if ((child(a,0)->tp->kind!="error") && (child(a,0)->tp->kind!="array"))
+			errorincompatibleoperator(a->line,"array[]");
+		if (child(a,1)->tp->kind!="error" && child(a,1)->tp->kind!="int")
+			errorincompatibleoperator(a->line,"[]");
+			
+		if(child(a,0)->tp->kind=="array") a->tp=child(a,0)->tp->down;
+	}
+
 	// Assignació
   else if (a->kind==":=") {
     TypeCheck(child(a,0));
@@ -233,11 +269,6 @@ void TypeCheck(AST *a,string info)
     else {
       a->tp=child(a,0)->tp;
     }
-  } 
-
-	// Número
-  else if (a->kind=="intconst") {
-    a->tp=create_type("int",0,0);
   } 
 
 	// Aritmètiques
@@ -272,7 +303,7 @@ void TypeCheck(AST *a,string info)
 		{
       errorincompatibleoperator(a->line,a->kind);
     }
-    a->tp=create_type("int",0,0);
+    a->tp=create_type("bool",0,0);
   }
  
 	// Comparadors lògics
@@ -286,12 +317,14 @@ void TypeCheck(AST *a,string info)
     }
     a->tp=create_type("bool",0,0);
   }
-
+	
+	// Comparador igualtat
 	else if (a->kind=="=")
 	{
 		TypeCheck(child(a,0));
 		TypeCheck(child(a,1));
-		if (child(a,0)->tp->kind!="error" && !equivalent_types(child(a,0)->tp,child(a,1)->tp))
+		if (child(a,0)->tp->kind!="error" && !equivalent_types(child(a,0)->tp,child(a,1)->tp) 
+			|| not isbasickind(child(a,0)->tp->kind) || not isbasickind(child(a,0)->tp->kind))
 		{
 			errorincompatibleoperator(a->line,a->kind);
 		}
@@ -351,13 +384,13 @@ void TypeCheck(AST *a,string info)
     a->ref=child(a,0)->ref;
     if (child(a,0)->tp->kind!="error") {
       if (child(a,0)->tp->kind!="struct") {
-	errorincompatibleoperator(a->line,"struct.");
+					errorincompatibleoperator(a->line,"struct.");
       }
       else if (child(a,0)->tp->struct_field.find(child(a,1)->text) == child(a,0)->tp->struct_field.end()) {
-	errornonfielddefined(a->line,child(a,1)->text);
+				errornonfielddefined(a->line,child(a,1)->text);
       } 
       else {
-	a->tp=child(a,0)->tp->struct_field[child(a,1)->text];
+				a->tp=child(a,0)->tp->struct_field[child(a,1)->text];
       }
     }
   } 
