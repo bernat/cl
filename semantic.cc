@@ -235,6 +235,11 @@ void TypeCheck(AST *a,string info)
     a->tp=create_type("int",0,0);
   }
 
+	// Tipus bàsic
+ 	else if (isbasickind(a->kind)) {
+    a->tp=create_type(a->kind,0,0);
+  }
+
 	// Array Declaració
 	else if (a->kind=="array") {
 		TypeCheck(child(a,1));
@@ -342,11 +347,6 @@ void TypeCheck(AST *a,string info)
 		a->tp=create_type("bool",0,0);
 	}
 
-	// Tipus bàsic
- 	else if (isbasickind(a->kind)) {
-    a->tp=create_type(a->kind,0,0);
-  }
-
 	// Writeln
   else if (a->kind=="writeln") {
     TypeCheck(child(a,0));
@@ -354,6 +354,26 @@ void TypeCheck(AST *a,string info)
       errorreadwriterequirebasic(a->line,a->kind);
     }
   }
+
+	// Read
+	else if (a->kind=="read")
+	{
+		TypeCheck(child(a,0));
+		if (child(a,0)->tp->kind!="error")
+		{
+			if (child(a,0)->ref==0) errornonreferenceableexpression(a->line,a->kind); // Cal que sigui referenciable
+			else if (!isbasickind(child(a,0)->tp->kind)) errorreadwriterequirebasic(a->line,a->kind); 
+		}
+	}
+
+	// Write
+	else if (a->kind=="write")
+	{
+    TypeCheck(child(a,0));
+    if (child(a,0)->tp->kind!="error" && !isbasickind(child(a,0)->tp->kind)) {
+      errorreadwriterequirebasic(a->line,a->kind);
+    }		
+	}
 
 	// If
 	else if (a->kind=="if") {
@@ -378,22 +398,28 @@ void TypeCheck(AST *a,string info)
 		TypeCheck(child(a,1), "instruction");
 	}
 
+	// Struct
   else if (a->kind==".") 
 	{
     TypeCheck(child(a,0));
     a->ref=child(a,0)->ref;
-    if (child(a,0)->tp->kind!="error") {
-      if (child(a,0)->tp->kind!="struct") {
-					errorincompatibleoperator(a->line,"struct.");
-      }
-      else if (child(a,0)->tp->struct_field.find(child(a,1)->text) == child(a,0)->tp->struct_field.end()) {
+    if (child(a,0)->tp->kind!="error") 
+		{
+      if (child(a,0)->tp->kind!="struct") errorincompatibleoperator(a->line,"struct.");
+      else if (child(a,0)->tp->struct_field.find(child(a,1)->text) == child(a,0)->tp->struct_field.end()) 
 				errornonfielddefined(a->line,child(a,1)->text);
-      } 
-      else {
-				a->tp=child(a,0)->tp->struct_field[child(a,1)->text];
-      }
+      else a->tp=child(a,0)->tp->struct_field[child(a,1)->text];
     }
-  } 
+  }
+	
+	// Funció o procediment
+	else if(a->kind=="(")
+	{
+		// if(!symboltable.find(a->))
+		
+	}
+
+	// 
   else {
     cout<<"BIG PROBLEM! No case defined for kind "<<a->kind<<endl;
   }
