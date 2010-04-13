@@ -147,9 +147,9 @@ void check_params(AST *a,ptype tp,int line,int numparam)
 		while (params != 0)
 		{
 			TypeCheck(params);
-				cout << "********* <check_params> *********" << endl;
-					ASTPrintIndent(params, "");
-				cout << "********* </check_params> ********" << endl;
+				// cout << "********* <check_params> *********" << endl;
+				// 	ASTPrintIndent(params, "");
+				// cout << "********* </check_params> ********" << endl;
 			// Si es referenciable, comprovar si ho es
 			if (tp->kind=="parref" && (params->ref==0)) errorreferenceableparam(line,currentparam);
 			if (params->tp->kind != "error" && tp->kind != "error" && !equivalent_types(tp->down, params->tp))
@@ -250,46 +250,55 @@ void insert_headers(AST *a)
 
 void TypeCheck(AST *a,string info)
 {
-  if (!a) {
+
+  cout << "Linea:  " << a->line << endl;
+
+	if (!a) {
     return;
   }
 
+	
+	
   //cout<<"Starting with node \""<<a->kind<<"\""<<endl;
   if (a->kind=="program") {
     a->sc=symboltable.push();
     insert_vars(child(child(a,0),0));
     insert_headers(child(child(a,1),0));
     TypeCheck(child(a,1));
-
-		symboltable.write(); //Debugging
-		
+		symboltable.write(); //Debugging		
     TypeCheck(child(a,2),"instruction");
-
     symboltable.pop();
   } 
 	
 	else if(a->kind=="procedure")
 	{
 		a->sc=symboltable.push();
-		    insert_params(child(child(child(a,0),0),0));
-		    insert_vars(child(child(a,1),0));
-		    insert_headers(child(child(a,2),0));
-		    TypeCheck(child(a,2));
+		insert_params(child(child(child(a,0),0),0));
+		insert_vars(child(child(a,1),0));	
+		insert_headers(child(child(a,2),0));
+		TypeCheck(child(a,2));
 		TypeCheck(child(a,3),"instruction");
-		symboltable.pop();
+				
+    // TypeCheck(child(a,2));
+    // TypeCheck(child(a,3));
+						
+											// cout << "#########<a->kind='procedure'>##########" << endl;
+											// 									ASTPrintIndent(a, "");
+											// 									cout << "########################################" << endl;
+											// 											
+											// 
+    symboltable.pop();
 	}
 	
 	else if(a->kind=="function")
 	{
 		// a->sc=symboltable.push();
-		// 	insert_params(child(child(child(a,0),0),0));
-		// 	insert_vars(child(a,1));	
-		// 	insert_headers(child(child(a,1),0));
-		// 	TypeCheck(child(a,1));
-		// 	TypeCheck(child(a,2),"instruction");
-		// 	
-		
-    symboltable.pop();
+		// insert_params(child(child(child(a,0),0),0));
+		// insert_vars(child(child(a,1),0));	
+		// insert_headers(child(child(a,1),0));
+		// TypeCheck(child(a,1));
+		// TypeCheck(child(a,2),"instruction");
+		//     symboltable.pop();
 	}
 
   else if (a->kind=="list") {
@@ -514,24 +523,24 @@ void TypeCheck(AST *a,string info)
 		else if (info=="instruction") // es tracta d'un procediment
 		{
 			a->tp = symboltable[child(a,0)->text].tp;
-			if (a->tp->kind=="procedure")	check_params(child(a,1), a->tp, a->line, a->tp->numelemsarray);
+			if (a->tp->kind=="procedure")	check_params(child(child(a,1),0), a->tp, a->line, a->tp->numelemsarray);
 			else
 			{
 				errorisnotprocedure(a->line);
 				// Ve una funcio en comptes d'un procediment: comprovem paramenters igualment
-				if (a->tp->kind!="function") check_params(child(a,1), a->tp , a->line , a->tp->numelemsarray);
+				if (a->tp->kind!="function") check_params(child(child(a,1),0), a->tp , a->line , a->tp->numelemsarray);
 			}
 		} else { // es tracta d'una funcio
 			a->tp = symboltable[child(a,0)->text].tp;
 			if (a->tp->kind=="function")	
 			{
-				check_params(child(a,1), a->tp , a->line , a->tp->numelemsarray);
+				check_params(child(child(a,1),0), a->tp , a->line , a->tp->numelemsarray);
 				a->tp = a->tp->right;
 			} else {
 				errorisnotfunction(a->line);
 				if (a->tp->kind=="procedure")
 				{	
-					check_params(child(a,1), a->tp , a->line , a->tp->numelemsarray);
+					check_params(child(child(a,1),0), a->tp , a->line , a->tp->numelemsarray);
 					a->tp = create_type("error",0,0);
 				}			
 			}
