@@ -251,7 +251,7 @@ void insert_headers(AST *a)
 void TypeCheck(AST *a,string info)
 {
 
-  cout << "Linea:  " << a->line << endl;
+  // cout << "Linea:  " << a->line << endl;
 
 	if (!a) {
     return;
@@ -277,6 +277,7 @@ void TypeCheck(AST *a,string info)
 		insert_vars(child(child(a,1),0));	
 		insert_headers(child(child(a,2),0));
 		TypeCheck(child(a,2));
+		symboltable.write(); //Debugging		
 		TypeCheck(child(a,3),"instruction");
 				
     // TypeCheck(child(a,2));
@@ -292,13 +293,16 @@ void TypeCheck(AST *a,string info)
 	
 	else if(a->kind=="function")
 	{
-		// a->sc=symboltable.push();
-		// insert_params(child(child(child(a,0),0),0));
-		// insert_vars(child(child(a,1),0));	
-		// insert_headers(child(child(a,1),0));
-		// TypeCheck(child(a,1));
-		// TypeCheck(child(a,2),"instruction");
-		//     symboltable.pop();
+		a->sc=symboltable.push();
+		insert_params(child(child(child(a,0),0),0));
+		insert_vars(child(child(a,1),0));	
+		insert_headers(child(child(a,2),0));
+		TypeCheck(child(a,2));
+		symboltable.write(); //Debugging		
+		TypeCheck(child(a,3),"instruction");
+     TypeCheck(child(a,4));
+     if (!equivalent_types(child(a,4)->tp, a->tp->right))
+       errorincompatiblereturn(child(a,4)->line);
 	}
 
   else if (a->kind=="list") {
