@@ -20,7 +20,7 @@ using namespace std;
 
 // feedback the main program with our error status
 int TypeError = 0;
-bool debug = true;
+bool debug = false;
 
 /// ---------- Error reporting routines --------------
 
@@ -123,7 +123,7 @@ static void InsertintoST(int line,string kind,string id,ptype tp)
 /// ------------------------------------------------------------
 
 bool isbasickind(string kind) {
-  return kind=="int" || kind=="bool";
+  return kind=="int" || kind=="bool" || kind=="string";
 }
 
 
@@ -155,7 +155,7 @@ void check_params(AST *a,ptype tp,int line,int numparam)
 				cout << "********* </check_params> ********" << endl;
 			}
 				
-			// Si es referenciable, comprovar si ho es
+			// Si es referenciable, comprovar si realment ho es
 			if (tp->kind=="parref" && (params->ref==0)) errorreferenceableparam(line,currentparam);
 			if (params->tp->kind != "error" && tp->kind != "error" && !equivalent_types(tp->down, params->tp))
 				errorincompatibleparam(line,currentparam);
@@ -177,10 +177,12 @@ void insert_vars(AST *a)
 
 void insert_params(AST *a)
 {
-	if (!a) return;
-	TypeCheck(child(a,1));
-  InsertintoST(a->line,"idpar" + a->kind,a->text,child(a,1)->tp);
-	insert_params(a->right);
+  if (!a) return;
+  TypeCheck(a->down->right);
+  if (a->kind == "ref") InsertintoST(a->line, "idparref", a->down->text, a->down->right->tp);
+  else if (a->kind == "val") InsertintoST(a->line, "idparval", a->down->text, a->down->right->tp);
+  if (debug) symboltable.write();
+  insert_params(a->right);
 }
 
 void construct_struct(AST *a)
@@ -217,7 +219,7 @@ void create_header(AST *a)
 		 
 	ptype actual, anterior;
 	anterior = NULL;
-	while (params!=0 && cont<3)
+	while (params!=0)
 	{		
 			actual = create_type("par" + params->kind,0,0);
 			
@@ -232,8 +234,8 @@ void create_header(AST *a)
 	a->tp->numelemsarray = cont;
 	
 	if(a->kind=="function"){
-		TypeCheck(child(child(child(a,0),0),1)); 
-		a->tp->right = child(child(child(a,0),0),1)->tp;
+		TypeCheck(child(child(a,0),1)); 
+		a->tp->right = child(child(a,0),1)->tp;
 	}
 	
 }
@@ -273,7 +275,7 @@ void TypeCheck(AST *a,string info)
     insert_vars(child(child(a,0),0));
     insert_headers(child(child(a,1),0));
     TypeCheck(child(a,1));
-		symboltable.write(); //Debugging		
+		if (debug) symboltable.write(); //Debugging		
     TypeCheck(child(a,2),"instruction");
     symboltable.pop();
   } 
@@ -285,20 +287,15 @@ void TypeCheck(AST *a,string info)
 		insert_vars(child(child(a,1),0));	
 		insert_headers(child(child(a,2),0));
 		TypeCheck(child(a,2));
-		symboltable.write(); //Debugging		
+		if (debug) symboltable.write(); //Debugging		
 		TypeCheck(child(a,3),"instruction");
 				
-    TypeCheck(child(a,2));
-     TypeCheck(child(a,3));
-
- 						if (debug)
-{
-		cout << "#########<a->kind='procedure'>##########" << endl;
-		ASTPrintIndent(a, "");
-		cout << "########################################" << endl;
-
-	
-}
+		if (debug)
+		{
+			cout << "#########<a->kind='procedure'>##########" << endl;
+			ASTPrintIndent(a, "");
+			cout << "########################################" << endl;
+		}
 																						
 											
     symboltable.pop();
@@ -316,7 +313,7 @@ void TypeCheck(AST *a,string info)
 				insert_vars(child(child(a,1),0));	
 				insert_headers(child(child(a,2),0));
 				TypeCheck(child(a,2));
-				symboltable.write(); //Debugging		
+				if (debug) symboltable.write(); //Debugging		
 				TypeCheck(child(a,3),"instruction");
 			TypeCheck(child(a,4));
 			if(!equivalent_types(child(a,4)->tp, a->tp->right))
@@ -337,7 +334,9 @@ void TypeCheck(AST *a,string info)
     } 
     else {
       a->tp=symboltable[a->text].tp;
-      a->ref=1;
+			if (a->tp->kind == "procedure" || a->tp->kind == "function") a->ref = 0;
+			      else a->ref=1;
+			// a->ref = 1;
     }
   } 
 
@@ -541,10 +540,12 @@ void TypeCheck(AST *a,string info)
 	// Funció o procediment
 	else if(a->kind=="(")
 	{
-		cout << "#################Dins de (###############" << endl;
-			ASTPrintIndent(a, "");
-		cout << "##########################################" << endl;
-		
+		if (debug)
+		{
+				cout << "#################Dins de (###############" << endl;
+				ASTPrintIndent(a, "");
+				cout << "##########################################" << endl;
+		}
 		
 		if(!symboltable.find(child(a,0)->text)) errornondeclaredident(a->line, child(a,0)->text);
 		else if (info=="instruction") // es tracta d'un procediment
