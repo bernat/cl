@@ -20,7 +20,7 @@ using namespace std;
 
 // feedback the main program with our error status
 int TypeError = 0;
-
+bool debug = true;
 
 /// ---------- Error reporting routines --------------
 
@@ -147,9 +147,14 @@ void check_params(AST *a,ptype tp,int line,int numparam)
 		while (params != 0)
 		{
 			TypeCheck(params);
-				// cout << "********* <check_params> *********" << endl;
-				// 	ASTPrintIndent(params, "");
-				// cout << "********* </check_params> ********" << endl;
+			
+			if (debug)
+			{
+				cout << "********* <check_params> *********" << endl;
+					ASTPrintIndent(params, "");
+				cout << "********* </check_params> ********" << endl;
+			}
+				
 			// Si es referenciable, comprovar si ho es
 			if (tp->kind=="parref" && (params->ref==0)) errorreferenceableparam(line,currentparam);
 			if (params->tp->kind != "error" && tp->kind != "error" && !equivalent_types(tp->down, params->tp))
@@ -203,10 +208,13 @@ void create_header(AST *a)
 	AST *params = child(child(child(a,0),0),0);
 	int cont = 0;
 	
-		// cout << "###################" << endl;
-		// ASTPrintIndent(params, "");
-		// cout << "###################" << endl;
-		// 
+	if (debug)
+	{
+		cout << "###################" << endl;
+		ASTPrintIndent(params, "");
+		cout << "###################" << endl;
+	}
+		 
 	ptype actual, anterior;
 	anterior = NULL;
 	while (params!=0 && cont<3)
@@ -251,7 +259,7 @@ void insert_headers(AST *a)
 void TypeCheck(AST *a,string info)
 {
 
-  // cout << "Linea:  " << a->line << endl;
+  if (debug) cout << "Linea:  " << a->line << endl;
 
 	if (!a) {
     return;
@@ -280,29 +288,39 @@ void TypeCheck(AST *a,string info)
 		symboltable.write(); //Debugging		
 		TypeCheck(child(a,3),"instruction");
 				
-    // TypeCheck(child(a,2));
-    // TypeCheck(child(a,3));
-						
-											// cout << "#########<a->kind='procedure'>##########" << endl;
-											// 									ASTPrintIndent(a, "");
-											// 									cout << "########################################" << endl;
-											// 											
-											// 
+    TypeCheck(child(a,2));
+     TypeCheck(child(a,3));
+
+ 						if (debug)
+{
+		cout << "#########<a->kind='procedure'>##########" << endl;
+		ASTPrintIndent(a, "");
+		cout << "########################################" << endl;
+
+	
+}
+																						
+											
     symboltable.pop();
+	}
+	
+	else if (a->kind == "val" || a->kind == "ref")
+	{
+		a->tp = create_type("par" + a->kind,0,0);
 	}
 	
 	else if(a->kind=="function")
 	{
 		a->sc=symboltable.push();
-		insert_params(child(child(child(a,0),0),0));
-		insert_vars(child(child(a,1),0));	
-		insert_headers(child(child(a,2),0));
-		TypeCheck(child(a,2));
-		symboltable.write(); //Debugging		
-		TypeCheck(child(a,3),"instruction");
-     TypeCheck(child(a,4));
-     if (!equivalent_types(child(a,4)->tp, a->tp->right))
-       errorincompatiblereturn(child(a,4)->line);
+				insert_params(child(child(child(a,0),0),0));
+				insert_vars(child(child(a,1),0));	
+				insert_headers(child(child(a,2),0));
+				TypeCheck(child(a,2));
+				symboltable.write(); //Debugging		
+				TypeCheck(child(a,3),"instruction");
+			TypeCheck(child(a,4));
+			if(!equivalent_types(child(a,4)->tp, a->tp->right))
+				errorincompatiblereturn(child(a,4)->line);
 	}
 
   else if (a->kind=="list") {
@@ -523,6 +541,11 @@ void TypeCheck(AST *a,string info)
 	// Funció o procediment
 	else if(a->kind=="(")
 	{
+		cout << "#################Dins de (###############" << endl;
+			ASTPrintIndent(a, "");
+		cout << "##########################################" << endl;
+		
+		
 		if(!symboltable.find(child(a,0)->text)) errornondeclaredident(a->line, child(a,0)->text);
 		else if (info=="instruction") // es tracta d'un procediment
 		{
