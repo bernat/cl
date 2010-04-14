@@ -128,43 +128,34 @@ bool isbasickind(string kind) {
 
 
 
-void check_params(AST *a,ptype tp,int line,int numparam)
+void check_params(AST *a, ptype tp, int line, int numparam)
 {
-	AST *params = a;
 	int cont = 0;
-	int currentparam = 1;
-	
-	while(params != 0)
+  AST* params = a;
+
+	while(params)
 	{
-		params = child(params, 1);
+		params = params->right;
 		cont++;
 	}
 	
-	if (numparam != cont) errornumparam(line);
+  if (cont != numparam) errornumparam(line);
 	else 
-	{
-		params = a;
-		while (params != 0)
-		{
-			TypeCheck(params);
-			
-			if (debug)
-			{
-				cout << "********* <check_params> *********" << endl;
-					ASTPrintIndent(params, "");
-				cout << "********* </check_params> ********" << endl;
-			}
-				
-			// Si es referenciable, comprovar si realment ho es
-			if (tp->kind=="parref" && (params->ref==0)) errorreferenceableparam(line,currentparam);
-			if (params->tp->kind != "error" && tp->kind != "error" && !equivalent_types(tp->down, params->tp))
-				errorincompatibleparam(line,currentparam);
-			params = child(params, 1);
-			tp = tp->right;
-			currentparam++;				
-		}
-	}
-
+  {
+  	params = a;
+	  cont = 1;
+	  tp = tp->down;
+	  while (params)
+	  {
+	    TypeCheck(params);
+	    if (tp->kind == "parref" && !params->ref) errorreferenceableparam(line, cont);
+	    if (params->tp->kind != "error" && tp->kind != "error" && !equivalent_types(tp->down, params->tp)) 
+				errorincompatibleparam(line, cont);
+	    tp = tp->right;
+	    params = params->right;
+	    cont++;
+	  }
+  }
 }
 
 void insert_vars(AST *a)
@@ -262,13 +253,10 @@ void TypeCheck(AST *a,string info)
 {
 
   if (debug) cout << "Linea:  " << a->line << endl;
-
 	if (!a) {
     return;
   }
 
-	
-	
   //cout<<"Starting with node \""<<a->kind<<"\""<<endl;
   if (a->kind=="program") {
     a->sc=symboltable.push();
@@ -301,11 +289,6 @@ void TypeCheck(AST *a,string info)
     symboltable.pop();
 	}
 	
-	else if (a->kind == "val" || a->kind == "ref")
-	{
-		a->tp = create_type("par" + a->kind,0,0);
-	}
-	
 	else if(a->kind=="function")
 	{
 		a->sc=symboltable.push();
@@ -315,9 +298,15 @@ void TypeCheck(AST *a,string info)
 				TypeCheck(child(a,2));
 				if (debug) symboltable.write(); //Debugging		
 				TypeCheck(child(a,3),"instruction");
-			TypeCheck(child(a,4));
-			if(!equivalent_types(child(a,4)->tp, a->tp->right))
-				errorincompatiblereturn(child(a,4)->line);
+				TypeCheck(child(a,4));
+	      if (!equivalent_types(child(a,4)->tp, a->tp->right))
+	        errorincompatiblereturn(child(a,4)->line);
+				symboltable.pop();
+	}
+	
+	else if (a->kind == "val" || a->kind == "ref")
+	{
+		a->tp = create_type("par" + a->kind,0,0);
 	}
 
   else if (a->kind=="list") {
@@ -538,44 +527,42 @@ void TypeCheck(AST *a,string info)
   }
 	
 	// Funció o procediment
-	else if(a->kind=="(")
-	{
-		if (debug)
-		{
-				cout << "#################Dins de (###############" << endl;
-				ASTPrintIndent(a, "");
-				cout << "##########################################" << endl;
-		}
-		
-		if(!symboltable.find(child(a,0)->text)) errornondeclaredident(a->line, child(a,0)->text);
-		else if (info=="instruction") // es tracta d'un procediment
-		{
-			a->tp = symboltable[child(a,0)->text].tp;
-			if (a->tp->kind=="procedure")	check_params(child(child(a,1),0), a->tp, a->line, a->tp->numelemsarray);
-			else
-			{
-				errorisnotprocedure(a->line);
-				// Ve una funcio en comptes d'un procediment: comprovem paramenters igualment
-				if (a->tp->kind!="function") check_params(child(child(a,1),0), a->tp , a->line , a->tp->numelemsarray);
-			}
-		} else { // es tracta d'una funcio
-			a->tp = symboltable[child(a,0)->text].tp;
-			if (a->tp->kind=="function")	
-			{
-				check_params(child(child(a,1),0), a->tp , a->line , a->tp->numelemsarray);
-				a->tp = a->tp->right;
-			} else {
-				errorisnotfunction(a->line);
-				if (a->tp->kind=="procedure")
-				{	
-					check_params(child(child(a,1),0), a->tp , a->line , a->tp->numelemsarray);
-					a->tp = create_type("error",0,0);
-				}			
-			}
-		}	
-	}
+	else if (a->kind == "(")
+  {
 
-	// 
+    if (!symboltable.find(child(a,0)->text)) errornondeclaredident(a->line, child(a,0)->text);
+    else if (info == "instruction")
+    { 
+      a->tp = symboltable[child(a,0)->text].tp;
+      if (a->tp->kind != "procedure")
+      {
+        errorisnotprocedure(a->line);
+        if (a->tp->kind == "function")
+          check_params(child(child(a,1),0), a->tp, a->line, a->tp->numelemsarray);
+      }
+      else check_params(child(child(a,1),0), a->tp, a->line, a->tp->numelemsarray);
+    }
+    else
+    { 
+      a->tp = symboltable[child(a,0)->text].tp;
+      if (a->tp->kind != "function")
+      {
+        errorisnotfunction(a->line);
+        if (a->tp->kind == "procedure")
+        { 
+          check_params(child(child(a,1),0), a->tp, a->line, a->tp->numelemsarray);
+          a->tp = create_type("error", 0, 0);
+        }
+      }
+      else
+      {
+        check_params(child(child(a,1),0), a->tp, a->line, a->tp->numelemsarray);
+        a->tp = a->tp->right;
+      }      
+    }
+  }
+
+	
   else {
     cout<<"BIG PROBLEM! No case defined for kind "<<a->kind<<endl;
   }
