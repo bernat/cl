@@ -363,11 +363,14 @@ void TypeCheck(AST *a,string info)
 	
 	// Array crida
 	else if (a->kind=="[") {
-		TypeCheck(child(a,1));
 		TypeCheck(child(a,0));
+		TypeCheck(child(a,1));
 		a->ref=child(a,0)->ref;
+		// Comprovem que l'id és un array
 		if ((child(a,0)->tp->kind!="error") && (child(a,0)->tp->kind!="array"))
 			errorincompatibleoperator(a->line,"array[]");
+
+		//Comprovem que la posició és un int	
 		if (child(a,1)->tp->kind!="error" && child(a,1)->tp->kind!="int")
 			errorincompatibleoperator(a->line,"[]");
 			
