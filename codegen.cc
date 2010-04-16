@@ -123,23 +123,23 @@ codechain GenLeft(AST *a,int t)
 {
   codechain c;
 
-  if (!a) {
-    return c;
-  }
+  if (!a) return c;
+
 
   //cout<<"Starting with node \""<<a->kind<<"\""<<endl;
   if (a->kind=="ident") {
-    c="aload _"+a->text+" t"+itostring(t);
+    c = "aload _" + a->text + " t" + itostring(t);
   }
-  else if (a->kind=="."){
-    c=GenLeft(child(a,0),t)||
-      "addi t"+itostring(t)+" "+
-      itostring(child(a,0)->tp->offset[child(a,1)->text])+" t"+itostring(t);
+  else if (a->kind==".")
+	{
+		c = GenLeft(child(a,0),t) || "addi t"+itostring(t) + " "
+			+ itostring(child(a, 0)->tp->offset[child(a, 1)->text]) 
+			+ " t" + itostring(t);
   }
   else {
     cout<<"BIG PROBLEM! No case defined for kind "<<a->kind<<endl;
   }
-  //cout<<"Ending with node \""<<a->kind<<"\""<<endl;
+  //cout<<"Ending with node \""<<a->ki	nd<<"\""<<endl;
   return c;
 }
 
@@ -149,9 +149,7 @@ codechain GenRight(AST *a,int t)
 {
   codechain c;
 
-  if (!a) {
-    return c;
-  }
+  if (!a) return c;
 
   //cout<<"Starting with node \""<<a->kind<<"\""<<endl;
   if (a->ref) {
@@ -165,14 +163,19 @@ codechain GenRight(AST *a,int t)
     else {//...to be done
     }    
   } 
-  else if (a->kind=="intconst") {
-    c="iload "+a->text+" t"+itostring(t);
+  else if (a->kind == "intconst") {
+    c="iload " + a->text + " t" + itostring(t);
   }
-  else if (a->kind=="+") {
-    c=GenRight(child(a,0),t)||
-      GenRight(child(a,1),t+1)||
-      "addi t"+itostring(t)+" t"+itostring(t+1)+" t"+itostring(t);
+  else if (a->kind=="+") 
+	{
+    c = GenRight(child(a,0), t) || GenRight(child(a,1), t+1) ||
+      "addi t" + itostring(t) + " t" + itostring(t + 1) + " t" + itostring(t);
   }
+
+
+	else if(a->kind=="true") 	c="iload 1 t" + itostring(t);
+	else if(a->kind=="false")	c="iload 0 t" + itostring(t);
+		
   else {
     cout<<"BIG PROBLEM! No case defined for kind "<<a->kind<<endl;
   }
@@ -188,36 +191,44 @@ codechain CodeGenInstruction(AST *a,string info="")
   if (!a) {
     return c;
   }
-  //cout<<"Starting with node \""<<a->kind<<"\""<<endl;
+  cout<<"Starting with node \""<<a->kind<<"\""<<endl;
   offsetauxspace=0;
-  if (a->kind=="list") {
-    for (AST *a1=a->down;a1!=0;a1=a1->right) {
-      c=c||CodeGenInstruction(a1,info);
-    }
-  }
-  else if (a->kind==":=") {
-    if (isbasickind(child(a,0)->tp->kind)) {
-      c=GenLeft(child(a,0),0)||GenRight(child(a,1),1)||"stor t1 t0";
-    }
-    else if (child(a,1)->ref) {
-      c=GenLeft(child(a,0),0)||GenLeft(child(a,1),1)||"copy t1 t0 "+itostring(child(a,1)->tp->size);
-    }
-    else {
-      c=GenLeft(child(a,0),0)||GenRight(child(a,1),1)||"copy t1 t0 "+itostring(child(a,1)->tp->size);
-    }
-  } 
-  else if (a->kind=="write" || a->kind=="writeln") {
-    if (child(a,0)->kind=="string") {
-      //...to be done.
-    } 
-    else {//Exp
-      c=GenRight(child(a,0),0)||"wrii t0";
-    }
 
-    if (a->kind=="writeln") {
-      c=c||"wrln";
-    }
+  if (a->kind=="list") 
+	{
+    for (AST *a1 = a->down; a1 != 0; a1 = a1->right) c = c || CodeGenInstruction(a1, info);
   }
+
+  else if (a->kind==":=") 
+	{
+    if (isbasickind(child(a,0)->tp->kind)) 
+			c = GenLeft(child(a,0),0) || GenRight(child(a,1),1) || "stor t1 t0";
+    else if (child(a,1)->ref) 
+			c = GenLeft(child(a,0),0) || GenLeft(child(a,1),1) || "copy t1 t0 " + itostring(child(a,1)->tp->size);
+    else 
+			c= GenLeft(child(a,0),0) || GenRight(child(a,1),1) || "copy t1 t0 " + itostring(child(a,1)->tp->size);
+  } 
+
+	else if (a->kind=="write" || a->kind=="writeln") 
+	{
+    if (child(a,0)->kind=="string") { }  //...to be done.
+	}
+
+	else if(a->kind=="while")
+	{
+		string numwhile = itostring(newLabelWhile(false));
+		c = "etiq while_" + numwhile || GenRight(child(a,0)) || "fjmp t0 endwhile_" + numwhile
+			|| CodeGenInstruction(child(a,1), info) || "ujmp while_" + numwhile || "etiq endwhile_" + numwhile;
+		cout << "While: " << etiqwhile << endl;
+		
+	}
+		
+   else {//Exp
+     c=GenRight(child(a,0),0)||"wrii t0";
+   }
+
+   if (a->kind=="writeln") c = c || "wrln";
+
   //cout<<"Ending with node \""<<a->kind<<"\""<<endl;
 
   return c;

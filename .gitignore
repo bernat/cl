@@ -1,3 +1,4 @@
+.passajocsproves.sh
 cl
 *.o
 err.c
