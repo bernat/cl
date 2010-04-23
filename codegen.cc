@@ -139,7 +139,7 @@ codechain GenLeft(AST *a,int t)
   else {
     cout<<"BIG PROBLEM! No case defined for kind "<<a->kind<<endl;
   }
-  //cout<<"Ending with node \""<<a->ki	nd<<"\""<<endl;
+  //cout<<"Ending with node \""<<a->kind<<"\""<<endl;
   return c;
 }
 
@@ -152,13 +152,14 @@ codechain GenRight(AST *a,int t)
   if (!a) return c;
 
   //cout<<"Starting with node \""<<a->kind<<"\""<<endl;
-  if (a->ref) {
-    if (a->kind=="ident" && symboltable.jumped_scopes(a->text)==0 &&
-	isbasickind(symboltable[a->text].tp->kind) && symboltable[a->text].kind!="idparref") {
-	c="load _"+a->text+" t"+itostring(t);
-    }
+  if (a->ref) 
+	{
+		if (a->kind=="ident" && symboltable.jumped_scopes(a->text)==0 &&
+			isbasickind(symboltable[a->text].tp->kind) && symboltable[a->text].kind!="idparref")
+				c="load _"+a->text+" t"+itostring(t);
+
     else if (isbasickind(a->tp->kind)) {
-      c=GenLeft(a,t)||"load t"+itostring(t)+" t"+itostring(t);
+      c=GenLeft(a,t)||"load t" + itostring(t) + " t" + itostring(t);
     }
     else {//...to be done
     }    
@@ -172,6 +173,52 @@ codechain GenRight(AST *a,int t)
       "addi t" + itostring(t) + " t" + itostring(t + 1) + " t" + itostring(t);
   }
 
+  else if (a->kind=="*") 
+	{
+    c = GenRight(child(a,0), t) || GenRight(child(a,1), t+1) ||
+      "muli t" + itostring(t) + " t" + itostring(t + 1) + " t" + itostring(t);
+  }
+
+  else if (a->kind=="/") 
+	{
+    c = GenRight(child(a,0), t) || GenRight(child(a,1), t+1) ||
+      "divi t" + itostring(t) + " t" + itostring(t + 1) + " t" + itostring(t);
+  }
+
+  else if (a->kind==">") 
+	{
+    c = GenRight(child(a,0), t) || GenRight(child(a,1), t+1) ||
+      "grti t" + itostring(t) + " t" + itostring(t + 1) + " t" + itostring(t);
+  }
+
+  else if (a->kind=="<") 
+	{
+    c = GenRight(child(a,0), t) || GenRight(child(a,1), t+1) ||
+      "lesi t" + itostring(t) + " t" + itostring(t + 1) + " t" + itostring(t);
+  }
+
+  else if (a->kind=="and") 
+	{
+    c = GenRight(child(a,0), t) || GenRight(child(a,1), t+1) ||
+      "land t" + itostring(t) + " t" + itostring(t + 1) + " t" + itostring(t);
+  }
+
+  else if (a->kind=="or") 
+	{
+    c = GenRight(child(a,0), t) || GenRight(child(a,1), t+1) ||
+      "loor t" + itostring(t) + " t" + itostring(t + 1) + " t" + itostring(t);
+  }
+
+  else if (a->kind=="=") 
+	{
+    c = GenRight(child(a,0), t) || GenRight(child(a,1), t+1) ||
+      "equi t" + itostring(t) + " t" + itostring(t + 1) + " t" + itostring(t);
+  }
+
+	else if(a->kind=="not")
+	{
+		c = GenRight(child(a,0),t) || "lnot t" + itostring(t) + " t" + itostring(t);
+	}
 
 	else if(a->kind=="true") 	c="iload 1 t" + itostring(t);
 	else if(a->kind=="false")	c="iload 0 t" + itostring(t);
@@ -184,7 +231,7 @@ codechain GenRight(AST *a,int t)
 }
 
 // ...to be completed:
-codechain CodeGenInstruction(AST *a,string info="")
+codechain CodeGenInstruction(AST *a, string info="")
 {
   codechain c;
 
@@ -211,22 +258,36 @@ codechain CodeGenInstruction(AST *a,string info="")
 
 	else if (a->kind=="write" || a->kind=="writeln") 
 	{
-    if (child(a,0)->kind=="string") { }  //...to be done.
+		if (child(a,0)->kind=="string") c = "wris " + child(a,0)->text;
+		else c = GenRight(child(a,0),0) || "wrii t0";
 	}
 
+	else if(a->kind=="if")
+	{
+		string numif = itostring(newLabelIf(false));
+		if(!child(a,2)) // If sense else
+		{
+			c = GenRight(child(a,0),0) || "fjmp t0 endif_" + numif || 
+			CodeGenInstruction(child(a,1), info) || "etiq endif_" + numif;
+		} 
+		else // Hi ha else
+		{
+			c = GenRight(child(a,0),0) || "fjmp t0 else_" + numif || 
+			CodeGenInstruction(child(a,1), info) || "ujmp endif_" + numif ||
+			"etiq else_" + numif || CodeGenInstruction(child(a,2),info) ||
+			"etiq endif_" + numif;
+		}
+		
+	}
+	
 	else if(a->kind=="while")
 	{
+		// ASTPrintIndent(a, "");
 		string numwhile = itostring(newLabelWhile(false));
-		c = "etiq while_" + numwhile || GenRight(child(a,0)) || "fjmp t0 endwhile_" + numwhile
-			|| CodeGenInstruction(child(a,1), info) || "ujmp while_" + numwhile || "etiq endwhile_" + numwhile;
-		cout << "While: " << etiqwhile << endl;
-		
+		c = "etiq while_" + numwhile || GenRight(child(a,0),0) || "fjmp t0 endwhile_" + numwhile
+			|| CodeGenInstruction(child(a,1), info) || "ujmp while_" + numwhile || "etiq endwhile_" + numwhile;		
 	}
 		
-   else {//Exp
-     c=GenRight(child(a,0),0)||"wrii t0";
-   }
-
    if (a->kind=="writeln") c = c || "wrln";
 
   //cout<<"Ending with node \""<<a->kind<<"\""<<endl;
