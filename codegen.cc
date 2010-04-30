@@ -130,14 +130,23 @@ codechain GenLeft(AST *a,int t)
   if (a->kind=="ident") {
     c = "aload _" + a->text + " t" + itostring(t);
   }
-  else if (a->kind==".")
+  else if (a->kind == ".")
 	{
-		c = GenLeft(child(a,0),t) || "addi t"+itostring(t) + " "
+		c = GenLeft(child(a,0),t) || "addi t" + itostring(t) + " "
 			+ itostring(child(a, 0)->tp->offset[child(a, 1)->text]) 
 			+ " t" + itostring(t);
   }
+
+	else if (a->kind == "[")
+	{
+		// ASTPrintIndent(a, "");
+		c = GenLeft(child(a, 0), t) || GenRight(child(a, 1), t+1) ||
+			"muli t" + itostring(t+1) + " " + itostring(child(a, 0)->tp->size / child(a, 0)->tp->numelemsarray) 
+			+ " t" + itostring(t+1) || "addi t" + itostring(t) + " t" + itostring(t+1) + " t" + itostring(t);
+	}
+
   else {
-    cout<<"BIG PROBLEM! No case defined for kind "<<a->kind<<endl;
+    cout<<"BIG PROBLEM in GenLeft! No case defined for kind "<<a->kind<<endl;
   }
   //cout<<"Ending with node \""<<a->kind<<"\""<<endl;
   return c;
@@ -171,6 +180,12 @@ codechain GenRight(AST *a,int t)
 	{
     c = GenRight(child(a,0), t) || GenRight(child(a,1), t+1) ||
       "addi t" + itostring(t) + " t" + itostring(t + 1) + " t" + itostring(t);
+  }
+
+  else if (a->kind=="-") 
+	{
+    c = GenRight(child(a,0), t) || GenRight(child(a,1), t+1) ||
+      "subi t" + itostring(t) + " t" + itostring(t + 1) + " t" + itostring(t);
   }
 
   else if (a->kind=="*") 
@@ -224,7 +239,7 @@ codechain GenRight(AST *a,int t)
 	else if(a->kind=="false")	c="iload 0 t" + itostring(t);
 		
   else {
-    cout<<"BIG PROBLEM! No case defined for kind "<<a->kind<<endl;
+    cout<<"BIG PROBLEM in GenRight! No case defined for kind "<<a->kind<<endl;
   }
   //cout<<"Ending with node \""<<a->kind<<"\""<<endl;
   return c;
@@ -265,7 +280,7 @@ codechain CodeGenInstruction(AST *a, string info="")
 	else if(a->kind=="if")
 	{
 		string numif = itostring(newLabelIf(false));
-		if(!child(a,2)) // If sense else
+		if(child(a, 2) == 0) // If sense else
 		{
 			c = GenRight(child(a,0),0) || "fjmp t0 endif_" + numif || 
 			CodeGenInstruction(child(a,1), info) || "etiq endif_" + numif;
