@@ -112,8 +112,34 @@ void CodeGenRealParams(AST *a,ptype tp,codechain &cpushparam,codechain &cremovep
 {
   if (!a) return;
   //cout<<"Starting with node \""<<a->kind<<"\""<<endl;
+	AST *param = child(child(a,1),0);
 
-  //...to be done.
+	// ASTPrintIndent(a, "");
+
+	// write_type(a->tp->down);
+	
+
+
+		tp = tp->down;
+		while(param)
+		{
+			if(tp->kind == "parref")
+			{
+				
+			}
+			else if(tp->kind == "parval")
+			{
+				
+			}
+			cremoveparam = cremoveparam || "killparam";
+			param = param->right;
+		}
+	
+	
+	
+	
+		
+	
 
   //cout<<"Ending with node \""<<a->kind<<"\""<<endl;
 }
@@ -302,6 +328,16 @@ codechain CodeGenInstruction(AST *a, string info="")
 		c = "etiq while_" + numwhile || GenRight(child(a,0),0) || "fjmp t0 endwhile_" + numwhile
 			|| CodeGenInstruction(child(a,1), info) || "ujmp while_" + numwhile || "etiq endwhile_" + numwhile;		
 	}
+	
+	else if(a->kind=="(")
+	{
+		codechain topush, topop;
+		CodeGenRealParams(a, a->tp, topush, topop, 0);
+		c = topush ||
+		"call " + symboltable.idtable(child(a, 0)->text) + "_" + child(a, 0)->text ||
+		topop;
+		cout << "symboltable.idtable(child(a,0)->text)="<< symboltable.idtable(child(a, 0)->text) << endl;
+	}
 		
    if (a->kind=="writeln") c = c || "wrln";
 
@@ -313,6 +349,7 @@ codechain CodeGenInstruction(AST *a, string info="")
 void CodeGenSubroutine(AST *a,list<codesubroutine> &l)
 {
   codesubroutine cs;
+	bool isfunc = (a->kind == "function");
 
   //cout<<"Starting with node \""<<a->kind<<"\""<<endl;
   string idtable=symboltable.idtable(child(a,0)->text);
@@ -320,7 +357,22 @@ void CodeGenSubroutine(AST *a,list<codesubroutine> &l)
   symboltable.push(a->sc);
   symboltable.setidtable(idtable+"_"+child(a,0)->text);
 
-  //...to be done.
+	gencodevariablesandsetsizes(a->sc, cs, isfunc);
+	
+	// ASTPrintIndent(a, "");
+
+	for (AST *a1 = child(child(a,2), 0); a1 != 0; a1 = a1->right) {
+	    CodeGenSubroutine(a1, l);
+	  }
+	
+	cs.c = CodeGenInstruction(child(a,3));
+	
+	cs.c = cs.c || "retu";
+	
+	
+	// for (AST *aAux = child(child(a,2),0); aAux != 0; aAux = aAux->right)
+	// 	CodeGenSubroutine(aAux, l);
+	
 
   symboltable.pop();
   l.push_back(cs);
@@ -328,7 +380,7 @@ void CodeGenSubroutine(AST *a,list<codesubroutine> &l)
 
 }
 
-void CodeGen(AST *a,codeglobal &cg)
+void CodeGen(AST *a, codeglobal &cg)
 {
   initnumops();
   securemodeon();
