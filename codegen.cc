@@ -113,7 +113,7 @@ void CodeGenRealParams(AST *a,ptype tp,codechain &cpushparam,codechain &cremovep
   if (!a) return;
   //cout<<"Starting with node \""<<a->kind<<"\""<<endl;
 	AST *param = child(child(a,1),0);
-
+	
 	// ASTPrintIndent(a, "");
 
 	// write_type(a->tp->down);
@@ -125,18 +125,21 @@ void CodeGenRealParams(AST *a,ptype tp,codechain &cpushparam,codechain &cremovep
 		{
 			if(tp->kind == "parref")
 			{
-				
+				cpushparam = cpushparam || GenLeft(param, t) || "pushparam t" + itostring(t);
 			}
 			else if(tp->kind == "parval")
 			{
-				
+				cpushparam = cpushparam || GenRight(param, t) || "pushparam t" + itostring(t);				
 			}
 			cremoveparam = cremoveparam || "killparam";
 			param = param->right;
+			tp = tp->right;
 		}
-	
-	
-	
+		
+		int js = symboltable.jumped_scopes(child(a,0)->text);
+		cpushparam = cpushparam || indirections(js, t);
+		cremoveparam = cremoveparam || "killparam";
+		cpushparam = cpushparam || "pushparam t" + itostring(t);
 	
 		
 	
@@ -153,8 +156,22 @@ codechain GenLeft(AST *a,int t)
 
 
   //cout<<"Starting with node \""<<a->kind<<"\""<<endl;
-  if (a->kind=="ident") {
-    c = "aload _" + a->text + " t" + itostring(t);
+  if (a->kind=="ident") 
+	{
+		int js = symboltable.jumped_scopes(a->text);
+		if (js > 0) // Estic en un procediment, no al prog principal
+		{
+			c = "load static_link t" + itostring(t);
+			for (int i = 1; i < js; i++) c = c || "load t" + itostring(t) + " t" + itostring(t);
+		  if (symboltable[a->text].kind == "idparref") 
+				c = c || + "load t" + itostring(t) + " t" + itostring(t);
+		} 
+		else
+		{
+			if (symboltable[a->text].kind == "idparref" || !isbasickind(a->tp->kind) && symboltable[a->text].kind == "idparval")
+				c = "load _" + a->text + " t" + itostring(t);			
+			else c = "aload _" + a->text + " t" + itostring(t);		
+		}
   }
   else if (a->kind == ".")
 	{
@@ -350,6 +367,7 @@ void CodeGenSubroutine(AST *a,list<codesubroutine> &l)
 {
   codesubroutine cs;
 	bool isfunc = (a->kind == "function");
+	//symboltable.write();
 
   //cout<<"Starting with node \""<<a->kind<<"\""<<endl;
   string idtable=symboltable.idtable(child(a,0)->text);
