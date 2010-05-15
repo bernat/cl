@@ -163,6 +163,7 @@ codechain GenLeft(AST *a,int t)
 		{
 			c = "load static_link t" + itostring(t);
 			for (int i = 1; i < js; i++) c = c || "load t" + itostring(t) + " t" + itostring(t);
+			c = c || "addi t"+itostring(t)+" "+" offset(" + symboltable.idtable(a->text) + ":_" + a->text +") t"+itostring(t);
 		  if (symboltable[a->text].kind == "idparref") 
 				c = c || + "load t" + itostring(t) + " t" + itostring(t);
 		} 
