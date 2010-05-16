@@ -200,7 +200,7 @@ codechain GenLeft(AST *a,int t)
 // ...to be completed:
 codechain GenRight(AST *a,int t)
 {
-  codechain c;
+  codechain c, topush, topop;
 
   if (!a) return c;
 
@@ -220,6 +220,16 @@ codechain GenRight(AST *a,int t)
   else if (a->kind == "intconst") {
     c="iload " + a->text + " t" + itostring(t);
   }
+	else if (a->kind == "(") {
+		topush = "pushparam 0";
+		CodeGenRealParams(a, symboltable[child(a,0)->text].tp, topush, topop, t);
+		topop = "killparam";
+		topop = topop || "killparam"; //Posat per la cara
+		topop = topop || "popparam t" + itostring(t);
+		c = topush;
+		c = c || "call " + symboltable.idtable(child(a, 0)->text) + "_" + child(a, 0)->text;
+		c = c || topop;
+	}
   else if (a->kind=="+") 
 	{
     c = GenRight(child(a,0), t) || GenRight(child(a,1), t+1) ||
@@ -292,7 +302,7 @@ codechain GenRight(AST *a,int t)
 // ...to be completed:
 codechain CodeGenInstruction(AST *a, string info="")
 {
-  codechain c;
+  codechain c, topush, topop;
 
   if (!a) {
     return c;
@@ -349,7 +359,6 @@ codechain CodeGenInstruction(AST *a, string info="")
 	
 	else if(a->kind=="(")
 	{
-		codechain topush, topop;
 		CodeGenRealParams(a, a->tp, topush, topop, 0);
 		c = topush ||
 		"call " + symboltable.idtable(child(a, 0)->text) + "_" + child(a, 0)->text ||
@@ -385,6 +394,12 @@ void CodeGenSubroutine(AST *a,list<codesubroutine> &l)
 	  }
 	
 	cs.c = CodeGenInstruction(child(a,3));
+	
+	if (isfunc)
+	{
+		cs.c = cs.c || GenRight(child(a, 4), 0);
+		cs.c = cs.c || "stor t0 returnvalue";		
+	}
 	
 	cs.c = cs.c || "retu";
 	
