@@ -34,7 +34,7 @@ int maxoffsetauxspace;
 int offsetauxspace;
 
 // For distinghishing different labels for different if's and while's.
-int newLabelWhile(bool inicialitzar = false){
+int newLabelWhile(bool inicialitzar = false) {
   static int comptador = 1;
   if (inicialitzar) comptador = 0;
   return comptador++;
@@ -236,7 +236,12 @@ codechain GenRight(AST *a,int t)
       "addi t" + itostring(t) + " t" + itostring(t + 1) + " t" + itostring(t);
   }
 
-  else if (a->kind=="-") 
+  else if (a->kind=="-" && !child(a, 1))  // - unari
+	{
+    c = GenRight(child(a,0), t) || "mini t" + itostring(t) + " t" + itostring(t);
+  }
+
+  else if (a->kind=="-" && child(a, 1)) 
 	{
     c = GenRight(child(a,0), t) || GenRight(child(a,1), t+1) ||
       "subi t" + itostring(t) + " t" + itostring(t + 1) + " t" + itostring(t);
@@ -303,11 +308,12 @@ codechain GenRight(AST *a,int t)
 codechain CodeGenInstruction(AST *a, string info="")
 {
   codechain c, topush, topop;
+	string numif, numwhile;
 
   if (!a) {
     return c;
   }
-  cout<<"Starting with node \""<<a->kind<<"\""<<endl;
+  // cout<<"Starting with node \""<<a->kind<<"\""<<endl;
   offsetauxspace=0;
 
   if (a->kind=="list") 
@@ -333,7 +339,7 @@ codechain CodeGenInstruction(AST *a, string info="")
 
 	else if(a->kind=="if")
 	{
-		string numif = itostring(newLabelIf(false));
+		numif = itostring(newLabelIf(false));
 		if(child(a, 2) == 0) // If sense else
 		{
 			c = GenRight(child(a,0),0) || "fjmp t0 endif_" + numif || 
@@ -352,18 +358,18 @@ codechain CodeGenInstruction(AST *a, string info="")
 	else if(a->kind=="while")
 	{
 		// ASTPrintIndent(a, "");
-		string numwhile = itostring(newLabelWhile(false));
-		c = "etiq while_" + numwhile || GenRight(child(a,0),0) || "fjmp t0 endwhile_" + numwhile
-			|| CodeGenInstruction(child(a,1), info) || "ujmp while_" + numwhile || "etiq endwhile_" + numwhile;		
+		numwhile = itostring(newLabelWhile(false));
+		c = "etiq while_" + numwhile || GenRight(child(a,0),0) || "fjmp t0 endwhile_" + numwhile;
+		c = c || CodeGenInstruction(child(a,1), info) || "ujmp while_" + numwhile || "etiq endwhile_" + numwhile;		
 	}
 	
 	else if(a->kind=="(")
 	{
 		CodeGenRealParams(a, a->tp, topush, topop, 0);
-		c = topush ||
-		"call " + symboltable.idtable(child(a, 0)->text) + "_" + child(a, 0)->text ||
-		topop;
-		cout << "symboltable.idtable(child(a,0)->text)="<< symboltable.idtable(child(a, 0)->text) << endl;
+		c = topush;
+		c = c || "call " + symboltable.idtable(child(a, 0)->text) + "_" + child(a, 0)->text;
+		c = c || topop;
+		// cout << "symboltable.idtable(child(a,0)->text)="<< symboltable.idtable(child(a, 0)->text) << endl;
 	}
 		
    if (a->kind=="writeln") c = c || "wrln";
@@ -388,6 +394,10 @@ void CodeGenSubroutine(AST *a,list<codesubroutine> &l)
 	gencodevariablesandsetsizes(a->sc, cs, isfunc);
 	
 	// ASTPrintIndent(a, "");
+	
+	// Inicialitzem a 0 els ifs i whiles de la subrutina
+	newLabelIf(true); 
+	newLabelWhile(true);
 
 	for (AST *a1 = child(child(a,2), 0); a1 != 0; a1 = a1->right) {
 	    CodeGenSubroutine(a1, l);
