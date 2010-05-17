@@ -224,7 +224,7 @@ codechain GenRight(AST *a,int t)
 		topush = "pushparam 0";
 		CodeGenRealParams(a, symboltable[child(a,0)->text].tp, topush, topop, t);
 		topop = "killparam";
-		topop = topop || "killparam"; //Posat per la cara
+		topop = topop || "killparam"; //Posat per la cara **********REVISAR************
 		topop = topop || "popparam t" + itostring(t);
 		c = topush;
 		c = c || "call " + symboltable.idtable(child(a, 0)->text) + "_" + child(a, 0)->text;
@@ -340,7 +340,7 @@ codechain CodeGenInstruction(AST *a, string info="")
 	else if(a->kind=="if")
 	{
 		numif = itostring(newLabelIf(false));
-		if(child(a, 2) == 0) // If sense else
+		if(!child(a, 2)) // If sense else
 		{
 			c = GenRight(child(a,0),0) || "fjmp t0 endif_" + numif || 
 			CodeGenInstruction(child(a,1), info) || "etiq endif_" + numif;
@@ -395,14 +395,14 @@ void CodeGenSubroutine(AST *a,list<codesubroutine> &l)
 	
 	// ASTPrintIndent(a, "");
 	
-	// Inicialitzem a 0 els ifs i whiles de la subrutina
-	newLabelIf(true); 
-	newLabelWhile(true);
-
 	for (AST *a1 = child(child(a,2), 0); a1 != 0; a1 = a1->right) {
 	    CodeGenSubroutine(a1, l);
 	  }
-	
+
+	// Inicialitzem a 0 els ifs i whiles de la subrutina
+	newLabelIf(true); 
+	newLabelWhile(true);
+		
 	cs.c = CodeGenInstruction(child(a,3));
 	
 	if (isfunc)
