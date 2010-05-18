@@ -113,12 +113,6 @@ void CodeGenRealParams(AST *a,ptype tp,codechain &cpushparam,codechain &cremovep
   if (!a) return;
   //cout<<"Starting with node \""<<a->kind<<"\""<<endl;
 	AST *param = child(child(a,1),0);
-	
-	// ASTPrintIndent(a, "");
-
-	// write_type(a->tp->down);
-	
-
 
 		tp = tp->down;
 		while(param)
@@ -141,9 +135,6 @@ void CodeGenRealParams(AST *a,ptype tp,codechain &cpushparam,codechain &cremovep
 		cremoveparam = cremoveparam || "killparam";
 		cpushparam = cpushparam || "pushparam t" + itostring(t);
 	
-		
-	
-
   //cout<<"Ending with node \""<<a->kind<<"\""<<endl;
 }
 
@@ -214,18 +205,40 @@ codechain GenRight(AST *a,int t)
     else if (isbasickind(a->tp->kind)) {
       c=GenLeft(a,t)||"load t" + itostring(t) + " t" + itostring(t);
     }
-    else {//...to be done
+    else 
+		{
+			c = GenLeft(a, t + 1);
+			c = c || "aload aux_space t" + itostring(t);
+			c = c || "addi t" + itostring(t) + " " + itostring(offsetauxspace) + " t" + itostring(t);
+			c = c || "copy t" + itostring(t + 1) + " t" + itostring(t) + " " + itostring(a->tp->size);
+			offsetauxspace += a->tp->size;
     }    
   } 
   else if (a->kind == "intconst") {
     c="iload " + a->text + " t" + itostring(t);
   }
-	else if (a->kind == "(") {
-		topush = "pushparam 0";
-		CodeGenRealParams(a, symboltable[child(a,0)->text].tp, topush, topop, t);
-		topop = "killparam";
-		topop = topop || "killparam"; //Posat per la cara **********REVISAR************
-		topop = topop || "popparam t" + itostring(t);
+	else if (a->kind == "(") 
+	{
+		// cout << "@@@@@@@@@@@@@@@@@@@ Dins del GenRight cas == '(' @@@@@@@@@@@@@@@@@@@@@@" << endl;
+		// cout << symboltable[child(a,0)->text].tp->right->kind << endl;
+		// ASTPrintIndent(a, "");
+		// cout << "@@@@@@@@@@@@@@@@@@@ FI Dins del GenRight cas == '(' @@@@@@@@@@@@@@@@@@@@@@" << endl;
+		if (isbasickind(symboltable[child(a,0)->text].tp->right->kind))
+		{
+			topush = "pushparam 0";
+			CodeGenRealParams(a, symboltable[child(a,0)->text].tp, topush, topop, t);
+			topop = topop || "popparam t" + itostring(t);
+		}
+		else
+		{
+			topush = "aload aux_space t" + itostring(t);
+			topush = topush || "addi t" + itostring(t) + " " + itostring(offsetauxspace) + " t" + itostring(t);
+			topush = topush || "pushparam t" + itostring(t);
+			offsetauxspace += compute_size(symboltable[child(a,0)->text].tp->right);
+			CodeGenRealParams(a, symboltable[child(a,0)->text].tp, topush, topop, t + 1);
+			topop = topop || "killparam";
+		}	
+		
 		c = topush;
 		c = c || "call " + symboltable.idtable(child(a, 0)->text) + "_" + child(a, 0)->text;
 		c = c || topop;
@@ -339,7 +352,7 @@ codechain CodeGenInstruction(AST *a, string info="")
 
 	else if(a->kind=="if")
 	{
-		numif = itostring(newLabelIf(false));
+		numif = itostring(newLabelIf());
 		if(!child(a, 2)) // If sense else
 		{
 			c = GenRight(child(a,0),0) || "fjmp t0 endif_" + numif || 
@@ -358,7 +371,7 @@ codechain CodeGenInstruction(AST *a, string info="")
 	else if(a->kind=="while")
 	{
 		// ASTPrintIndent(a, "");
-		numwhile = itostring(newLabelWhile(false));
+		numwhile = itostring(newLabelWhile());
 		c = "etiq while_" + numwhile || GenRight(child(a,0),0) || "fjmp t0 endwhile_" + numwhile;
 		c = c || CodeGenInstruction(child(a,1), info) || "ujmp while_" + numwhile || "etiq endwhile_" + numwhile;		
 	}
@@ -373,6 +386,9 @@ codechain CodeGenInstruction(AST *a, string info="")
 		
    if (a->kind=="writeln") c = c || "wrln";
 
+	// Actualitzo el Màxim auxspace
+	if (offsetauxspace > maxoffsetauxspace) maxoffsetauxspace = offsetauxspace;
+	
   //cout<<"Ending with node \""<<a->kind<<"\""<<endl;
 
   return c;
@@ -401,6 +417,8 @@ void CodeGenSubroutine(AST *a,list<codesubroutine> &l)
 	// Inicialitzem a 0 els ifs i whiles de la subrutina
 	newLabelIf(true); 
 	newLabelWhile(true);
+	
+	maxoffsetauxspace=0;
 		
 	cs.c = CodeGenInstruction(child(a,3));
 	
@@ -420,10 +438,14 @@ void CodeGenSubroutine(AST *a,list<codesubroutine> &l)
 	}
 	
 	cs.c = cs.c || "retu";
-	
-	
-	// for (AST *aAux = child(child(a,2),0); aAux != 0; aAux = aAux->right)
-	// 	CodeGenSubroutine(aAux, l);
+
+  if (maxoffsetauxspace > 0) 
+	{
+    variable_data vd;
+    vd.name = "aux_space";
+    vd.size = maxoffsetauxspace;
+    cs.localvariables.push_back(vd);
+  }
 
   symboltable.pop();
   l.push_back(cs);
@@ -439,12 +461,14 @@ void CodeGen(AST *a, codeglobal &cg)
   symboltable.push(a->sc);
   symboltable.setidtable("program");
   gencodevariablesandsetsizes(a->sc,cg.mainsub);
-  for (AST *a1=child(child(a,1),0);a1!=0;a1=a1->right) {
-    CodeGenSubroutine(a1,cg.l);
-  }
+ 
+	for (AST *a1=child(child(a,1),0);a1!=0;a1=a1->right) 
+		CodeGenSubroutine(a1,cg.l);
+ 
   maxoffsetauxspace=0; newLabelIf(true); newLabelWhile(true);
   cg.mainsub.c=CodeGenInstruction(child(a,2))||"stop";
-  if (maxoffsetauxspace>0) {
+  if (maxoffsetauxspace>0) 
+	{
     variable_data vd;
     vd.name="aux_space";
     vd.size=maxoffsetauxspace;

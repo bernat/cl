@@ -176,6 +176,7 @@ program
     call program_G
     killparam
     killparam
+    killparam
     popparam t1
     stor t1 t0
     load _X t0
@@ -201,7 +202,15 @@ subroutine program_F
     iload 1 t2
     addi t1 t2 t1
     stor t1 t0
-    stor t0 returnvalue
+    load static_link t1
+    addi t1 offset(program:_S) t1
+    load static_link t2
+    addi t2 offset(program:_X) t2
+    load t2 t2
+    muli t2 44 t2
+    addi t1 t2 t1
+    load returnvalue t0
+    copy t1 t0 44
     retu
 endsubroutine
 
@@ -232,4 +241,4 @@ subroutine program_G
 endsubroutine
 
 Executing code:
-5
+3
