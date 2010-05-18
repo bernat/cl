@@ -309,6 +309,16 @@ codechain GenRight(AST *a,int t)
 
 	else if(a->kind=="true") 	c="iload 1 t" + itostring(t);
 	else if(a->kind=="false")	c="iload 0 t" + itostring(t);
+	
+	else if(!a->ref)
+	{
+		c = GenRight(child(a, 0), t);
+		c = c || "addi t"+itostring(t) + " " + itostring(child(a, 0)->tp->offset[child(a, 1)->text]) + " t" + itostring(t);
+		
+		// Hauria de separar els cassos de basic type i no basic type?
+		// Potser en el cas de basic type hauria d'afegir
+		//  || "load t" + itostring(t) + " t" + itostring(t);
+	}
 		
   else {
     cout<<"BIG PROBLEM in GenRight! No case defined for kind "<<a->kind<<endl;
