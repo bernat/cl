@@ -369,7 +369,6 @@ codechain CodeGenInstruction(AST *a, string info="")
 		c = topush;
 		c = c || "call " + symboltable.idtable(child(a, 0)->text) + "_" + child(a, 0)->text;
 		c = c || topop;
-		// cout << "symboltable.idtable(child(a,0)->text)="<< symboltable.idtable(child(a, 0)->text) << endl;
 	}
 		
    if (a->kind=="writeln") c = c || "wrln";
@@ -407,8 +406,17 @@ void CodeGenSubroutine(AST *a,list<codesubroutine> &l)
 	
 	if (isfunc)
 	{
-		cs.c = cs.c || GenRight(child(a, 4), 0);
-		cs.c = cs.c || "stor t0 returnvalue";		
+		// write_type(a->tp->down);
+		if (isbasickind(child(a, 4)->tp->kind)) // Retorn de Tipus Simple
+		{
+			cs.c = cs.c || GenRight(child(a, 4), 0);
+			cs.c = cs.c || "stor t0 returnvalue";					
+		}
+		else // Retorn de tipus Complex
+		{
+			cs.c = cs.c || GenLeft(child(a, 4), 1);
+			cs.c = cs.c || "load returnvalue t0" || "copy t1 t0 " + itostring(compute_size(child(a, 4)->tp));
+		}
 	}
 	
 	cs.c = cs.c || "retu";
@@ -416,7 +424,6 @@ void CodeGenSubroutine(AST *a,list<codesubroutine> &l)
 	
 	// for (AST *aAux = child(child(a,2),0); aAux != 0; aAux = aAux->right)
 	// 	CodeGenSubroutine(aAux, l);
-	//hola
 
   symboltable.pop();
   l.push_back(cs);
