@@ -416,7 +416,7 @@ void CodeGenSubroutine(AST *a,list<codesubroutine> &l)
 	
 	// for (AST *aAux = child(child(a,2),0); aAux != 0; aAux = aAux->right)
 	// 	CodeGenSubroutine(aAux, l);
-	
+	//hola
 
   symboltable.pop();
   l.push_back(cs);
