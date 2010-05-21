@@ -219,10 +219,6 @@ codechain GenRight(AST *a,int t)
   }
 	else if (a->kind == "(") 
 	{
-		// cout << "@@@@@@@@@@@@@@@@@@@ Dins del GenRight cas == '(' @@@@@@@@@@@@@@@@@@@@@@" << endl;
-		// cout << symboltable[child(a,0)->text].tp->right->kind << endl;
-		// ASTPrintIndent(a, "");
-		// cout << "@@@@@@@@@@@@@@@@@@@ FI Dins del GenRight cas == '(' @@@@@@@@@@@@@@@@@@@@@@" << endl;
 		if (isbasickind(symboltable[child(a,0)->text].tp->right->kind))
 		{
 			topush = "pushparam 0";
@@ -313,11 +309,9 @@ codechain GenRight(AST *a,int t)
 	else if(!a->ref)
 	{
 		c = GenRight(child(a, 0), t);
-		c = c || "addi t"+itostring(t) + " " + itostring(child(a, 0)->tp->offset[child(a, 1)->text]) + " t" + itostring(t);
-		
-		// Hauria de separar els cassos de basic type i no basic type?
-		// Potser en el cas de basic type hauria d'afegir
-		//  || "load t" + itostring(t) + " t" + itostring(t);
+		c = c || "addi t"+itostring(t) + " " + itostring(child(a, 0)->tp->offset[child(a, 1)->text]) + " t" + itostring(t);			
+		if (isbasickind(a->tp->kind))
+			c = c || "load t" + itostring(t) + " t" + itostring(t);
 	}
 		
   else {
@@ -350,7 +344,7 @@ codechain CodeGenInstruction(AST *a, string info="")
 			c = GenLeft(child(a,0),0) || GenRight(child(a,1),1) || "stor t1 t0";
     else if (child(a,1)->ref) 
 			c = GenLeft(child(a,0),0) || GenLeft(child(a,1),1) || "copy t1 t0 " + itostring(child(a,1)->tp->size);
-    else 
+    else // No és basic i no es referenciable
 			c= GenLeft(child(a,0),0) || GenRight(child(a,1),1) || "copy t1 t0 " + itostring(child(a,1)->tp->size);
   } 
 
