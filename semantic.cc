@@ -403,7 +403,7 @@ void TypeCheck(AST *a,string info)
   else if (a->kind==":=") 
 	{
 		TypeCheck(child(a,0));
-    TypeCheck(child(a,1));
+		TypeCheck(child(a,1));
 		AST* filldeputa = child(a,0);
 		if (filldeputa->kind == "<<")
 		{
@@ -419,7 +419,35 @@ void TypeCheck(AST *a,string info)
 					zorrina = zorrina->right;
 				}
 				if(size != compute_size(child(a,1)->tp))
-					errornumberitemsunpack(a->line);				
+					errornumberitemsunpack(a->line);	
+				//comprovació de tipus
+				ptype stp = child(a, 1)->tp;
+				list<string>::iterator it = stp->ids.begin();
+				//ASTPrintIndent(child(a,0), "");	
+				//ASTPrintIndent(child(a,1), "");	
+				//write_type(child(a,1)->tp);
+				AST* zorreta = child(child(child(a,0),0),0);
+				int i = 1;
+				while(it!=stp->ids.end())
+				{
+				//	cout << "Iteracio" << i << endl;
+					ptype etp = stp->struct_field[*it];
+					if(etp->kind != zorreta->tp->kind)
+					{
+						if(etp->kind != "error" && zorreta->tp->kind != "error")
+							errorincompatibleassignmentunpack(a->line, i);
+ 					}
+					if(!zorreta->ref)
+						errornonreferenceableleftunpack(a->line, i); 	
+				//	cout << "zorreta->tp->kind=";
+				//	cout << zorreta->kind << "|" << zorreta->tp->kind << endl;
+				//	cout << "write_type(etp)=";
+				//	write_type(etp);
+				//	cout << endl;
+					it++;
+					i++;
+					zorreta = zorreta->right;
+				}	
 			}
 		}
 		else
