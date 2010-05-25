@@ -1,25 +1,25 @@
 Program
   Vars
+    a Struct
+      b Bool
+      c Int
+    EndStruct
+    d Struct
+      e Array[1] Of Int
+      g Array[1] Of Bool
+    EndStruct
     x Int
-    y Struct
-      x bool
-      y Int
-      EndStruct
-    z Array [10] Of bool
+    y Bool
   EndVars
-  Procedure P(ref a Array [10] Of bool,
-              val b Struct x Bool y Int EndStruct,
-              ref x Array [4] Of Int)
-    Vars
-      x Array [10] Of bool
-      y Array [4] of Int
-    EndVars
-    x[3]:=45+z[y.x]
-    x:=a
-    x:=y
-  EndProcedure 
-  x:=z[3]
-  z[y.y+2]:=
-            z[x]+
-            y.x[3].y
+  
+  << x, y >> := a
+  << y, x >> := a
+  << x, x >> := a
+  
+  << d.e[1], d.g[1] >> := a
+  << d.g[1], d.e[1] >> := a
+  
+  z := 1
+  d.z := 2
+  << z, d.z >> := a
 EndProgram

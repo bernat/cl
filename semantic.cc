@@ -17,6 +17,7 @@ using namespace std;
 
 #include "semantic.hh"
 #include "util.hh"
+#include "newsemantic.hh"
 
 // feedback the main program with our error status
 int TypeError = 0;
@@ -103,6 +104,27 @@ void errorfielddefined(int l, string s) {
   TypeError = 1;
   cout<<"L. "<<l<<": Field "<<s<<" already defined in the struct."<<endl;
 }
+
+void errornumberitemsunpack(int l) {
+  TypeError = 1;
+  cout<<"L. "<<l<<": The number of items in the unpacking assignment do not match."<<endl;
+}
+
+void errornonreferenceableleftunpack(int l, int n) {
+  TypeError = 1;
+  cout<<"L. "<<l<<": Left expression of item " << n << " in unpacking assignment is not referenceable."<<endl;
+}
+
+void errorincompatibleassignmentunpack(int l, int n) {
+  TypeError = 1;
+  cout<<"L. "<<l<<": Unpacking assignment with incompatible types for item " << n << "." << endl;
+}
+
+void errorunpackrequiresstruct(int l) {
+  TypeError = 1;
+  cout<<"L. "<<l<<": Unpacking assignment requires a struct." << endl;
+}
+
 
 /// ------------------------------------------------------------
 /// Table to store information about program identifiers
@@ -378,19 +400,41 @@ void TypeCheck(AST *a,string info)
 	}
 
 	// Assignació
-  else if (a->kind==":=") {
-    TypeCheck(child(a,0));
+  else if (a->kind==":=") 
+	{
+		TypeCheck(child(a,0));
     TypeCheck(child(a,1));
-    if (!child(a,0)->ref) {
-      errornonreferenceableleft(a->line,child(a,0)->text);
-    }
-    else if (child(a,0)->tp->kind!="error" && child(a,1)->tp->kind!="error" &&
-	     !equivalent_types(child(a,0)->tp,child(a,1)->tp)) {
-      errorincompatibleassignment(a->line);
-    } 
-    else {
-      a->tp=child(a,0)->tp;
-    }
+		AST* filldeputa = child(a,0);
+		if (filldeputa->kind == "<<")
+		{
+			if(child(a,1)->tp->kind != "struct")
+				errorunpackrequiresstruct(a->line);
+			else
+			{
+				AST* zorrina = child(child(filldeputa, 0),0);
+				int size = 0;
+				while(zorrina)
+				{
+					size += zorrina->tp->size;
+					zorrina = zorrina->right;
+				}
+				if(size != compute_size(child(a,1)->tp))
+					errornumberitemsunpack(a->line);				
+			}
+		}
+		else
+		{
+	    if (!child(a,0)->ref) {
+	      errornonreferenceableleft(a->line,child(a,0)->text);
+	    }
+	    else if (child(a,0)->tp->kind!="error" && child(a,1)->tp->kind!="error" &&
+		     !equivalent_types(child(a,0)->tp,child(a,1)->tp)) {
+	      errorincompatibleassignment(a->line);
+	    } 
+	    else {
+	      a->tp=child(a,0)->tp;
+	    }	  	
+		}		
   } 
 
 	// Aritmètiques
@@ -564,6 +608,26 @@ void TypeCheck(AST *a,string info)
       }      
     }
   }
+
+	else if (a->kind == "<<")
+	{
+		a->tp = create_type("struct",0,0);
+		AST* a1 = child(child(a, 0), 0);
+		int i = 0;
+		while(a1)
+		{
+			TypeCheck(a1);
+			string s = "e" + itostring(i); 
+			a->tp->struct_field[s]=a1->tp; 
+			a->tp->ids.push_back(s);
+			a1 = a1->right;
+			i++;
+			// cout << "###############" << endl;
+			// write_type(a->tp);
+			// cout << endl << "###############" << endl;			
+		}
+		a->tp->size = compute_size(a->tp);
+	}
 
 	
   else {

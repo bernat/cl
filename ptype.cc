@@ -81,7 +81,7 @@ bool equivalent_types(ptype t1,ptype t2)
     list<string>::iterator it1=t1->ids.begin();
     list<string>::iterator it2=t2->ids.begin();
     for (;it1!=t1->ids.end() && it2!=t2->ids.end();it1++,it2++) {
-      if ((*it1)!=(*it2) || !equivalent_types(t1->struct_field[*it1],t2->struct_field[*it2])) {
+      if (!equivalent_types(t1->struct_field[*it1],t2->struct_field[*it2])) {
 	return false;
       }
     }

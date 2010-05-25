@@ -1,16 +1,17 @@
 Program
   Vars
-    X Int
-    Y bool
-    B bool
+    a Struct
+      b Int
+      c Bool
+    EndStruct
+    x Int
+    y Bool
+    z Int
   EndVars
-  Function P(Val Z Int,Ref T bool) Return Int
-    Return T
-  EndFunction
-  Procedure Q(Val X Int,Ref W Int)
-    X:=Q(X,X)+
-       Q(X)
-    Y:=P(Y,Y)+Y
-    B:=P(Q(X,Y),P(X,X))
-  EndProcedure
+  
+  << x, y >> := a
+  << x, y >> := z
+  
+  << x >> := a
+  << x, y, z >> := a
 EndProgram

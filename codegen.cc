@@ -217,6 +217,35 @@ codechain GenRight(AST *a,int t)
   else if (a->kind == "intconst") {
     c="iload " + a->text + " t" + itostring(t);
   }
+
+
+	else if(a->kind == "<<")
+	{
+		c = c || "iload 54321 t50";
+		offsetauxspace += a->tp->size;
+		AST *param = child(child(a, 0), 0);
+		int i = 0;
+		
+		while(param)
+		{
+			c = c || "aload aux_space t" + itostring(t);
+			c = c || GenRight(param, t + 1);
+			string s = "e" + itostring(i); 
+			ptype etp = a->tp->struct_field[s]; 
+			int eoff = a->tp->offset[s];
+			c = c || "addi t" + itostring(t) + " " + itostring(eoff) + " t" + itostring(t);
+			if (isbasickind(etp->kind))
+	      c = c || "stor t"+itostring(t+1) + " t"+itostring(t);
+		  else
+		    c = c || "copy t"+itostring(t+1)+" t"+itostring(t)+" "+itostring(etp->size);
+		 
+			param = param->right;
+			i++;
+		}
+		c = c || "aload aux_space t" + itostring(t);
+		c = c || "iload 54321 t50";
+	}
+
 	else if (a->kind == "(") 
 	{
 		if (isbasickind(symboltable[child(a,0)->text].tp->right->kind))

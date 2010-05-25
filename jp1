@@ -1,39 +1,19 @@
-PROGRAM
-  VARS
-    x int
-    y int
-    p bool
-  ENDVARS
-  PROCEDURE q()
-    PROCEDURE p(val p int)
-      p:=3
-      p:=true
-    ENDPROCEDURE
-    p:=3
-    p(3)
-    p(true)
-  ENDPROCEDURE
-  PROCEDURE r(ref p int)
-    PROCEDURE p(val r int)
-      r:=4
-      r(3)
-      r(p)
-      r(y)
-      r(x)
-      p:=3
-      p:=true
-      p(3)
-    ENDPROCEDURE
-    r:=3
-    r(3)
-    r(p())
-    r(y)
-    r(x)
-    p:=3
-    p:=true
-    p(p)
-  ENDPROCEDURE
-  p:=3
-  p:=true
-  p(3)
-ENDPROGRAM
+Program
+  Vars
+    a Struct
+      a Int
+      b Int
+    EndStruct
+    b Struct
+      x Int
+      y Int
+    EndStruct
+    c Struct
+      a Int
+      b Bool
+    EndStruct
+  EndVars
+  
+  a := b
+  a := c
+EndProgram
